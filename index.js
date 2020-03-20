@@ -50,6 +50,9 @@ setInterval(() => {
 
 client.on("ready", () => {
     console.log(`Ready. Logged as ${client.user.tag}!`);
+    client.user.setActivity("Pronote", {
+        type: "WATCHING"
+    });
 });
 
 client.on("message", async (message) => {
