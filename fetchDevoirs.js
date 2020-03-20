@@ -4,7 +4,7 @@ const cheerio = require("cheerio");
 const doubleDigits = require("double-digit");
 const matieresFormatees = require("./matieres.json");
 const formatMatiere = (nom, reverse) => {
-    let data = matieresFormatees.find(d => (reverse ? d[1] : d[0]) === nom);
+    let data = matieresFormatees.find(d => (reverse ? d[1] : d[0]) === nom.trim());
     if (data) {
         return reverse ? data[0] : data[1];
     }
