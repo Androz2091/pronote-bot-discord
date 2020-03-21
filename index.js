@@ -26,6 +26,11 @@ const getAdded = (devoirs) => {
     return added;
 };
 
+const cache = () => {
+    const devoirs = await fetchDevoirs(config.entUsername, config.entPassword);
+    updateCache(devoirs);
+};
+
 const check = async () => {
     const devoirs = await fetchDevoirs(config.entUsername, config.entPassword);
     const devoirsAdded = getAdded(devoirs);
@@ -58,6 +63,9 @@ client.on("ready", () => {
 client.on("message", async (message) => {
     if(message.content === "!check" && message.author.id === config.ownerID){
         check();
+    }
+    if(message.content === "!cache" && message.author.id === config.ownerID){
+        cache();
     }
 });
 
