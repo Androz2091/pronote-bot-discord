@@ -13,7 +13,7 @@ const beautify = require("json-beautify");
 const { promises } = require("fs");
 const updateCache = async (devoirs) => {
     cache = devoirs;
-    return await promises.writeFile("cache.json", beautify(devoirs, null, 4, 100));
+    return await promises.writeFile("./cache.json", beautify(devoirs, null, 4, 100));
 }
 
 const getAdded = (devoirs) => {
