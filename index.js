@@ -26,7 +26,7 @@ const getAdded = (devoirs) => {
     return added;
 };
 
-const cache = () => {
+const syncCache = () => {
     const devoirs = await fetchDevoirs(config.entUsername, config.entPassword);
     updateCache(devoirs);
 };
@@ -65,7 +65,7 @@ client.on("message", async (message) => {
         check();
     }
     if(message.content === "!cache" && message.author.id === config.ownerID){
-        cache();
+        syncCache();
     }
 });
 
