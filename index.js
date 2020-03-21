@@ -26,7 +26,7 @@ const getAdded = (devoirs) => {
     return added;
 };
 
-const syncCache = () => {
+const syncCache = async () => {
     const devoirs = await fetchDevoirs(config.entUsername, config.entPassword);
     updateCache(devoirs);
 };
