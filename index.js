@@ -1,7 +1,5 @@
-const channels = require("./channels.json");
-
+const matieresData = require("./matieres-data.json");
 const config = require("./config.json");
-
 const fetchDevoirs = require("./fetchDevoirs");
 
 const Discord = require("discord.js");
@@ -36,15 +34,21 @@ const check = async () => {
     const devoirsAdded = getAdded(devoirs);
     updateCache(devoirs);
     devoirsAdded.forEach((devoir) => {
+        const matiereData = matieresData[devoir.matiereName];
         const embed = new Discord.MessageEmbed()
-        .setAuthor("Nouveau devoir en "+devoir.matiere, client.user.displayAvatarURL())
-        .addField("Contenu", devoir.content)
-        .addField("Date", devoir.date, true)
+        .setTitle(`${matiereData.emoji} | Nouveau devoir en ${matiereData.formattedName}`)
+        .setURL("https://adrienne-bolland.ecollege.haute-garonne.fr/sg.do?PROC=TRAVAIL_A_FAIRE&ACTION=AFFICHER_ELEVES_TAF&filtreAVenir=true")
+        .addField("Contenu", devoir.contenu)
+        .addField("Devoir à faire/rendre pour le", devoir.aRendre.split("Pour le ")[1], true)
+        .addField("Devoir donné le", devoir.donneLe.split("Donné le ")[1], true)
+        .addField("Fichiers en pièce jointe", devoir.files <= 0 ? "Aucun fichier attaché." : devoir.files.map((file) => {
+            const fileParts = file.title.split("-");
+            fileParts.pop();
+            return `[${fileParts.join("-")}](${file.link}) (${file.size})`
+        }).join("\n"), false)
         .setColor("#70C7A4");
-        const channel = channels.find((e) => e[1] === devoir.matiere)[0];
-        if(!channel) return client.channels.get("690299067502297190").send(embed);
-        client.channels.cache.get(channel).send(embed).then((e) => {
-            e.react("👀");
+        client.channels.cache.get(matiereData.channelID || "693773027233759272").send(embed).then((e) => {
+            e.react("✅");
         });
     });
 };

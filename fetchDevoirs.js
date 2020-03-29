@@ -1,22 +1,6 @@
 const puppeteer = require("puppeteer");
 const cheerio = require("cheerio");
 
-const doubleDigits = require("double-digit");
-const matieresFormatees = require("./matieres.json");
-const formatMatiere = (nom, reverse) => {
-    let data = matieresFormatees.find(d => (reverse ? d[1] : d[0]) === nom.trim());
-    if (data) {
-        return reverse ? data[0] : data[1];
-    }
-    return reverse
-        ? nom
-        : nom.charAt(0).toUpperCase() + nom.substr(1, nom.length).toLowerCase();
-};
-
-const dateAndTime = require("date-and-time");
-require("date-and-time/locale/fr");
-dateAndTime.locale("fr");
-
 const timeout = 120000;
 
 const entLoginURL = "https://cas.ecollege.haute-garonne.fr/login?selection=ATS_parent_eleve&service=https%3A%2F%2Fadrienne-bolland.ecollege.haute-garonne.fr%2Fsg.do%3FPROC%3DIDENTIFICATION_FRONT&submit=Valider";
@@ -26,7 +10,8 @@ module.exports = (entUsername, entPassword) => {
     return new Promise(async (resolve, reject) => {
         const startAt = Date.now();
         const browser = await puppeteer.launch({
-            args: [ "--no-sandbox" ]
+            args: [ "--no-sandbox" ],
+            headless: false
         });
         browser.on("disconnected", () => {
             console.log(`Browser closed. (session=${entUsername})`);
@@ -57,12 +42,34 @@ module.exports = (entUsername, entPassword) => {
                 const devoirsLength = $(".js-taf__content").length;
                 const devoirs = [];
                 for(let i = 0; i < devoirsLength; i++){
-                    const rawDate = $(".js-taf__content").get(i).children[3].children[1].children[0].data.trim().split(" ").splice(1, 3).join(" ");
-                    const date = new Date(dateAndTime.parse(rawDate, "D MMMM YYYY"));
+                    const rawDetail = $(".js-taf__modal-content").get(i);
+                    const rawRowFull = rawDetail.children[1];
+                    const matiereName = rawRowFull.children[1].children[1].children[1].children[0].data.trim();
+                    const aRendre = rawRowFull.children[3].children[1].children[1].children[1].children[0].data.trim();
+                    const donneLe = rawRowFull.children[3].children[1].children[3].children[1].children[0].data.trim();
+                    const rawSmallDetails = $(".text--slate-darker.js-taf__modal-trigger").get(i);
+                    const contenu = rawSmallDetails.children[3].children[0].data.trim();
+                    const rawJumboFiles = rawDetail.children[7];
+                    const files = [];
+                    if(rawJumboFiles){
+                        const jumboFiles = rawJumboFiles.children[5].children.filter((child) => child.attribs);
+                        jumboFiles.forEach((file) => {
+                            const fileTitle = file.children[1].children[0].data.trim();
+                            const fileLink = `https://adrienne-bolland.ecollege.haute-garonne.fr${file.children[1].attribs.href}`;
+                            const fileSize = (parseInt(file.children[3].children[1].children[7].children[0].data.trim()) / 1000000).toFixed(1).toString().replace(".", ",")+" Mo";
+                            files.push({
+                                title: fileTitle,
+                                link: fileLink,
+                                size: fileSize
+                            });
+                        });
+                    }
                     devoirs.push({
-                        matiere: formatMatiere($(".js-taf__content").get(i).children[1].children[1].children[1].children[0].data.trim()),
-                        content: $(".js-taf__content").get(i).children[1].children[1].children[3].children[0].data.trim(),
-                        date: date.getDate()+"/"+doubleDigits(date.getMonth()+1)
+                        matiereName,
+                        donneLe,
+                        aRendre,
+                        contenu,
+                        files
                     });
                 }
                 resolve(devoirs);

@@ -1,0 +1,92 @@
+{
+    "MATHEMATIQUES": {
+        "formattedName": "Mathématiques",
+        "channelID": "690139535447031855",
+        "emoji": "🦋"
+    },
+    "PHYSIQUE-CHIMIE": {
+        "formattedName": "Physique Chimie",
+        "channelID": "690233671852097620",
+        "emoji": "🧪"
+    },
+    "LCA LATIN": {
+        "formattedName": "Latin",
+        "channelID": "690302802580602951",
+        "emoji": "🏛️"
+    },
+    "EDUCATION MUSICALE": {
+        "formattedName": "Éducation musicale",
+        "channelID": "693823621453578240",
+        "emoji": "🎶"
+    },
+    "ARTS PLASTIQUES": {
+        "formattedName": "Arts Plastiques",
+        "channelID": "690178566507593762",
+        "emoji": "🎨"
+    },
+    "ESPAGNOL LV2": {
+        "formattedName": "Espagnol",
+        "channelID": "690131194888978463",
+        "emoji": "🇪🇸"
+    },
+    "AP MATHS": {
+        "formattedName": "AP Maths",
+        "channelID": "690139535447031855",
+        "emoji": "🧮"
+    },
+    "ANGLAIS LV1": {
+        "formattedName": "Anglais",
+        "channelID": "690233626948141103",
+        "emoji": "🇬🇧"
+    },
+    "AP ANGLAIS": {
+        "formattedName": "AP Anglais",
+        "channelID": "690233626948141103",
+        "emoji": "🇬🇧"
+    },
+    "ENGLISH ACAD": {
+        "formattedName": "English Academy",
+        "channelID": "690285392108453949",
+        "emoji": "🇬🇧"
+    },
+    "AP FRANCAIS": {
+        "formattedName": "AP Français",
+        "channelID": "690131214329446497",
+        "emoji": "📖"
+    },
+    "FRANCAIS": {
+        "formattedName": "Français",
+        "channelID": "690131214329446497",
+        "emoji": "📖"
+    },
+    "HISTOIRE-GEOGRAPHIE": {
+        "formattedName": "Histoire-Géo",
+        "channelID": "690131072817823861",
+        "emoji": "🌎"
+    },
+    "VIE DE CLASSE": {
+        "formattedName": "Vie de classe",
+        "channelID": "690131072817823861",
+        "emoji": ""
+    },
+    "ENS. MORAL & CIVIQUE": {
+        "formattedName": "Enseignement moral et civique",
+        "channelID": "690131072817823861",
+        "emoji": ""
+    },
+    "SCIENCES VIE & TERRE": {
+        "formattedName": "SVT",
+        "channelID": "690233488104095831",
+        "emoji": "🦋"
+    },
+    "TECHNOLOGIE": {
+        "formattedName": "Technologie",
+        "channelID": "690464881987551253",
+        "emoji": "🤖"
+    },
+    "ED.PHYSIQUE & SPORT.": {
+        "formattedName": "Éducation physique et sportive",
+        "channelID": "691591878990233654",
+        "emoji": "🏃‍♀️"
+    }
+}
