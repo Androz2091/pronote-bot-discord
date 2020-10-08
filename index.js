@@ -8,11 +8,37 @@ const client = new Discord.Client();
 
 const DATE_END_OF_YEAR = new Date(new Date().getTime() + 31536000000);
 
-let cache = require("./cache.json");
+let cache = null;
+
+/**
+ * Écrit l'objet dans le cache et met à jour la variable
+ * @param {object} newCache Le nouvel objet
+ */
 const writeCache = (newCache) => {
     cache = newCache;
-    fs.writeFileSync("cache.json", JSON.stringify(newCache, null, 2), "utf-8");
+    fs.writeFileSync("cache.json", JSON.stringify(newCache, null, 4), "utf-8");
 };
+
+/**
+ * Réinitialise le cache
+ */
+const resetCache = () => writeCache({
+    homeworks: [],
+    marks: []
+});
+
+// Si le fichier cache n'existe pas, on le créé
+if (!fs.existsSync("cache.json")) {
+    resetCache();
+} else {
+    // S'il existe, on essaie de le parser et si ça échoue on le reset pour éviter les erreurs
+    try {
+        cache = JSON.parse(fs.readFileSync("cache.json", "utf-8"));
+    } catch (e) {
+        console.error(e);
+        resetCache();
+    }
+}
 
 /**
  * Synchronise le cache avec Pronote et se charge d'appeler les fonctions qui envoient les notifications
@@ -68,6 +94,9 @@ client.on("ready", () => {
         type: "WATCHING"
     });
     pronoteSynchronization();
+    setInterval(() => {
+        pronoteSynchronization();
+    }, 5 * 60 * 1000);
 });
 
 // Connexion à Discord
