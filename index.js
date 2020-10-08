@@ -6,7 +6,7 @@ const pronote = require("pronote-api");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
-const DATE_END_OF_YEAR = new Date(new Date().getTime() + 31536000000);
+const DATE_END_OF_YEAR = new Date(Date.now() + 31536000000);
 
 let cache = null;
 
