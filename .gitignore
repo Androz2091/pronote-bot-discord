@@ -3,4 +3,5 @@ node_modules
 yarn.lock
 
 # Config
-config.json
+.env
+cache.json

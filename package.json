@@ -1,8 +1,10 @@
 {
   "dependencies": {
-    "cheerio": "^1.0.0-rc.3",
     "discord.js": "^12.0.2",
-    "json-beautify": "^1.1.1",
-    "puppeteer": "^2.1.1"
+    "dotenv": "^8.2.0",
+    "pronote-api": "Litarvan/pronote-api"
+  },
+  "devDependencies": {
+    "eslint": "^7.10.0"
   }
 }

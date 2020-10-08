@@ -1,101 +1,74 @@
-const matieresData = require("./matieres-data.json");
-const config = require("./config.json");
-const fetchDevoirs = require("./fetchDevoirs");
+require("dotenv").config();
+const fs = require("fs");
+
+const pronote = require("pronote-api");
 
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
+const DATE_END_OF_YEAR = new Date(new Date().getTime() + 31536000000);
+
 let cache = require("./cache.json");
+const writeCache = (newCache) => {
+    cache = newCache;
+    fs.writeFileSync("cache.json", JSON.stringify(newCache, null, 2), "utf-8");
+};
 
-const beautify = require("json-beautify");
-const { promises } = require("fs");
-const updateCache = async (devoirs) => {
-    cache = devoirs;
-    return await promises.writeFile("./cache.json", beautify(devoirs, null, 4, 100));
-}
+/**
+ * Synchronise le cache avec Pronote et se charge d'appeler les fonctions qui envoient les notifications
+ * @returns {void}
+ */
+const pronoteSynchronization = async () => {
 
-const getAdded = (devoirs) => {
-    const added = [];
-    devoirs.forEach((devoir) => {
-        if(!cache.some((d) => d.content === devoir.content)){
-            added.push(devoir);
-        }
+    // Connexion à Pronote
+    const session = await pronote.login(process.env.PRONOTE_URL, process.env.PRONOTE_USERNAME, process.env.PRONOTE_PASSWORD, process.env.PRONOTE_CAS, "student");
+
+    // Vérification des devoirs
+    const homeworks = await session.homeworks(Date.now(), DATE_END_OF_YEAR);
+    const newHomeworks = homeworks.filter((work) => !(cache.homeworks.some((cacheWork) => cacheWork.description === work.description)));
+    if (newHomeworks.length > 0 && newHomeworks.length <= 3) {
+        newHomeworks.forEach((work) => sendDiscordNotificationHomework(work));
+    }
+    // Mise à jour du cache pour les devoirs
+    writeCache({
+        ...cache,
+        homeworks
     });
-    return added;
+
+    // Déconnexion de Pronote
+    session.logout();
+
 };
 
-const syncCache = async () => {
-    const devoirs = await fetchDevoirs(config.entUsername, config.entPassword);
-    updateCache(devoirs);
-};
-
-const check = async () => {
-    const devoirs = await fetchDevoirs(config.entUsername, config.entPassword);
-    const devoirsAdded = getAdded(devoirs);
-    updateCache(devoirs);
-    devoirsAdded.forEach((devoir) => {
-        const matiereData = matieresData[devoir.matiereName];
-        const embed = new Discord.MessageEmbed()
-        .setTitle(`${matiereData.emoji} | Nouveau devoir en ${matiereData.formattedName}`)
-        .setURL("https://adrienne-bolland.ecollege.haute-garonne.fr/sg.do?PROC=TRAVAIL_A_FAIRE&ACTION=AFFICHER_ELEVES_TAF&filtreAVenir=true")
-        .addField("Contenu", devoir.contenu)
-        .addField("Devoir à faire/rendre pour le", devoir.aRendre.split("Pour le ")[1], true)
-        .addField("Devoir donné le", devoir.donneLe.split("Donné le ")[1], true)
-        .addField("Fichiers en pièce jointe", devoir.files <= 0 ? "Aucun fichier attaché." : devoir.files.map((file) => {
-            const fileParts = file.title.split("-");
-            fileParts.pop();
-            return `[${fileParts.join("-")}](${file.link}) (${file.size})`
-        }).join("\n"), false)
+/**
+ * Envoi une notification de devoir sur Discord
+ * @param {pronote.Homework} homework Le devoir à envoyer
+ */
+const sendDiscordNotificationHomework = (homework) => {
+    const embed = new Discord.MessageEmbed()
+        .setTitle(`${homework.subject.toUpperCase()}`)
+        .setDescription(homework.description)
+        .setTimestamp(homework.for)
         .setColor("#70C7A4");
-        client.channels.cache.get(matiereData.channelID || "693773027233759272").send(embed).then((e) => {
-            e.react("✅");
-        });
+
+    if(homework.files.length >= 1) {
+        embed.addField("Pièces jointes", homework.files.map((file) => {
+            return `[${file.name}](${file.url})`;
+        }).join("\n"), false);
+    }
+
+    client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID).send(embed).then((e) => {
+        e.react("✅");
     });
 };
-
-setInterval(() => {
-    check();
-}, 60000*15);
 
 client.on("ready", () => {
     console.log(`Ready. Logged as ${client.user.tag}!`);
     client.user.setActivity("Pronote", {
         type: "WATCHING"
     });
+    pronoteSynchronization();
 });
 
-client.on("message", async (message) => {
-    if(message.content === "!check" && message.author.id === config.ownerID){
-        check();
-    }
-    if(message.content === "!cache" && message.author.id === config.ownerID){
-        syncCache();
-    }
-});
-
-const clean = text => {
-    if (typeof(text) === "string")
-      return text.replace(/`/g, "`" + String.fromCharCode(8203)).replace(/@/g, "@" + String.fromCharCode(8203));
-    else
-        return text;
-  }
-
-client.on("message", message => {
-    const args = message.content.split(" ").slice(1);
-   
-    if (message.content.startsWith("!eval")) {
-      try {
-        const code = args.join(" ");
-        let evaled = eval(code);
-   
-        if (typeof evaled !== "string")
-          evaled = require("util").inspect(evaled);
-   
-        message.channel.send(clean(evaled), {code:"xl"});
-      } catch (err) {
-        message.channel.send(`\`ERROR\` \`\`\`xl\n${clean(err)}\n\`\`\``);
-      }
-    }
-  });
-
-client.login(config.token);
+// Connexion à Discord
+client.login(process.env.TOKEN);
