@@ -95,7 +95,8 @@ client.on("ready", () => {
     });
     pronoteSynchronization();
     setInterval(() => {
-        pronoteSynchronization();
+        const date = new Date();
+        pronoteSynchronization().catch((e) => console.log(`${date} | ${e}`));
     }, 5 * 60 * 1000);
 });
 
