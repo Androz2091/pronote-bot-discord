@@ -97,7 +97,7 @@ client.on("ready", () => {
     pronoteSynchronization();
     setInterval(() => {
         const date = new Date();
-        pronoteSynchronization().catch((e) => console.log(`${date} | ${e}`));
+        pronoteSynchronization().catch((e) => console.log(`${date} | ${e.message}`));
     }, 5 * 60 * 1000);
 });
 
