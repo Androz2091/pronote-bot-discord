@@ -47,7 +47,8 @@ if (!fs.existsSync("cache.json")) {
 const pronoteSynchronization = async () => {
 
     // Connexion à Pronote
-    const session = await pronote.login(process.env.PRONOTE_URL, process.env.PRONOTE_USERNAME, process.env.PRONOTE_PASSWORD, process.env.PRONOTE_CAS, "student");
+    const cas = (process.env.PRONOTE_CAS && process.env.PRONOTE_CAS.length > 0 ? process.env.PRONOTE_CAS : "none");
+    const session = await pronote.login(process.env.PRONOTE_URL, process.env.PRONOTE_USERNAME, process.env.PRONOTE_PASSWORD, cas, "student");
 
     // Vérification des devoirs
     const homeworks = await session.homeworks(Date.now(), DATE_END_OF_YEAR);
