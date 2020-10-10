@@ -1,5 +1,7 @@
 require("dotenv").config();
 const fs = require("fs");
+const moment = require("moment");
+moment.locale("fr");
 
 const pronote = require("pronote-api");
 
@@ -75,7 +77,7 @@ const sendDiscordNotificationHomework = (homework) => {
     const embed = new Discord.MessageEmbed()
         .setTitle(`${homework.subject.toUpperCase()}`)
         .setDescription(homework.description)
-        .setTimestamp(homework.for)
+        .setFooter(`Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`)
         .setColor("#70C7A4");
 
     if(homework.files.length >= 1) {
