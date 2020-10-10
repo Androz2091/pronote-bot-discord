@@ -109,7 +109,7 @@ const sendDiscordNotificationMark = (subject, mark) => {
  */
 const sendDiscordNotificationHomework = (homework) => {
     const embed = new Discord.MessageEmbed()
-        .setTitle(`${homework.subject.toUpperCase()}`)
+        .setTitle(homework.subject.toUpperCase())
         .setDescription(homework.description)
         .setFooter(`Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`)
         .setColor("#70C7A4");
