@@ -1,4 +1,11 @@
 {
+  "name": "pronote-bot-discord",
+  "version": "1.0.0",
+  "description": "Un bot Discord pour envoyer des notifications Pronote dans un serveur Discord 📚",
+  "main": "index.js",
+  "repository": "https://github.com/Androz2091/pronote-bot-discord.git",
+  "author": "Androz2091 <androz2091@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "discord.js": "^12.0.2",
     "dotenv": "^8.2.0",
