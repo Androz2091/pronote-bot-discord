@@ -112,6 +112,7 @@ const sendDiscordNotificationHomework = (homework) => {
         .setTitle(homework.subject.toUpperCase())
         .setDescription(homework.description)
         .setFooter(`Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`)
+        .setURL(process.env.PRONOTE_URL)
         .setColor("#70C7A4");
 
     if(homework.files.length >= 1) {
