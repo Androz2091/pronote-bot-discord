@@ -64,10 +64,44 @@ const pronoteSynchronization = async () => {
         homeworks
     });
 
+    const marks = await session.marks("trimester");
+    const subjectsNewMarks = marks.subjects.filter((subj) => cache.marks.subjects && cache.marks.subjects.find((s) => s.name === subj.name) && cache.marks.subjects.find((s) => s.name === subj.name).averages.student !== subj.averages.student);
+    if (subjectsNewMarks.length > 0 && subjectsNewMarks.length <= 3) {
+        subjectsNewMarks.forEach((subj) => {
+            const marks = subj.marks.filter((mark) => !(cache.marks.subjects.find((s) => s.name === subj.name).marks.some((cacheMark) => cacheMark.id === mark.id)));
+            marks.forEach((mark) => sendDiscordNotificationMark(subj, mark));
+        });
+    }
+    // Mise à jour du cache pour les notes
+    writeCache({
+        ...cache,
+        marks
+    });
+
     // Déconnexion de Pronote
     session.logout();
 
 };
+
+/**
+ * Envoi un notification de note sur Discord
+ * @param {string} subject La matière de la note
+ * @param {pronote.Mark} mark La note à envoyer
+ */
+const sendDiscordNotificationMark = (subject, mark) => {
+    const infos = `Moyenne de la classe : ${mark.average}/${mark.scale}`;
+    const description = mark.title ? `${mark.title}\n\n${infos}` : infos;
+    const embed = new Discord.MessageEmbed()
+        .setTitle(subject.name.toUpperCase())
+        .setDescription(description)
+        .setFooter(`Date de l'évaluation : ${moment(mark.date).format("dddd Do MMMM")}`)
+        .setURL(process.env.PRONOTE_URL)
+        .setColor("#70C7A4");
+
+    client.channels.cache.get(process.env.MARKS_CHANNEL_ID).send(embed).then((e) => {
+        e.react("✅");
+    });
+}; 
 
 /**
  * Envoi une notification de devoir sur Discord
