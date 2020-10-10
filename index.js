@@ -135,7 +135,7 @@ client.on("ready", () => {
     setInterval(() => {
         const date = new Date();
         pronoteSynchronization().catch((e) => console.log(`${date} | ${e.message}`));
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
 });
 
 // Connexion à Discord
