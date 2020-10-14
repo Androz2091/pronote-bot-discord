@@ -26,7 +26,9 @@ const writeCache = (newCache) => {
  */
 const resetCache = () => writeCache({
     homeworks: [],
-    marks: []
+    marks: [{
+        subjects: []
+    }]
 });
 
 // Si le fichier cache n'existe pas, on le créé
@@ -66,12 +68,18 @@ const pronoteSynchronization = async () => {
     });
 
     const marks = await session.marks("trimester");
-    const subjectsNewMarks = marks.subjects.filter((subj) => cache.marks.subjects && cache.marks.subjects.find((s) => s.name === subj.name) && cache.marks.subjects.find((s) => s.name === subj.name).averages.student !== subj.averages.student);
-    if (subjectsNewMarks.length > 0 && subjectsNewMarks.length <= 3) {
-        subjectsNewMarks.forEach((subj) => {
-            const marks = subj.marks.filter((mark) => !(cache.marks.subjects.find((s) => s.name === subj.name).marks.some((cacheMark) => cacheMark.id === mark.id)));
-            marks.forEach((mark) => sendDiscordNotificationMark(subj, mark));
-        });
+    const marksNotifications = [];
+    marks.subjects.forEach((subject) => {
+        const cachedSubject = cache.marks.subjects.find((sub) => sub.name === subject.name);
+        if (cachedSubject) {
+            const newMarks = subject.marks.filter((mark) => !(cachedSubject.marks.some((cacheMark) => cacheMark.id === mark.id)));
+            newMarks.forEach((mark) => marksNotifications.push({ subject, mark }));
+        } else {
+            subject.marks.forEach((mark) => marksNotifications.push({ subject, mark }));
+        }
+    });
+    if (marksNotifications.length > 0 && marksNotifications.length < 3) {
+        marksNotifications.forEach((markNotif) => sendDiscordNotificationMark(markNotif.subject, markNotif.mark));
     }
     // Mise à jour du cache pour les notes
     writeCache({
