@@ -26,9 +26,10 @@ const writeCache = (newCache) => {
  */
 const resetCache = () => writeCache({
     homeworks: [],
-    marks: [{
+    marks: {
         subjects: []
-    }]
+    },
+    lessonsAway: []
 });
 
 // Si le fichier cache n'existe pas, on le créé
@@ -38,8 +39,7 @@ if (!fs.existsSync("cache.json")) {
     // S'il existe, on essaie de le parser et si ça échoue on le reset pour éviter les erreurs
     try {
         cache = JSON.parse(fs.readFileSync("cache.json", "utf-8"));
-    } catch (e) {
-        console.error(e);
+    } catch {
         resetCache();
     }
 }
@@ -87,6 +87,32 @@ const pronoteSynchronization = async () => {
         marks
     });
 
+    const nextWeekDay = new Date();
+    nextWeekDay.setDate(nextWeekDay.getDate() + 30);
+    const timetable = await session.timetable(new Date(), nextWeekDay);
+    const awayNotifications = [];
+    timetable.filter((lesson) => lesson.isAway).forEach((lesson) => {
+        if (!cache.lessonsAway.some((lessonID) => lessonID === lesson.id)){
+            awayNotifications.push({
+                teacher: lesson.teacher,
+                from: lesson.from,
+                subject: lesson.subject,
+                id: lesson.id
+            });
+        }
+    });
+    if (awayNotifications.length) {
+        awayNotifications.forEach((awayNotif) => sendDiscordNotificationAway(awayNotif));
+    }
+
+    writeCache({
+        ...cache,
+        lessonsAway: [
+            ...cache.lessonsAway,
+            ...awayNotifications.map((n) => n.id)
+        ]
+    });
+
     // Déconnexion de Pronote
     session.logout();
 
@@ -131,6 +157,23 @@ const sendDiscordNotificationHomework = (homework) => {
     }
 
     client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID).send(embed).then((e) => {
+        e.react("✅");
+    });
+};
+
+/**
+ * Envoi une notification de cours annulé sur Discord
+ * @param {any} awayNotif Les informations sur le cours annulé
+ */
+const sendDiscordNotificationAway = (awayNotif) => {
+    const embed = new Discord.MessageEmbed()
+        .setTitle(awayNotif.subject.toUpperCase())
+        .setDescription(`${awayNotif.teacher} sera absent le ${moment(awayNotif.from).format("dddd Do MMMM")}`)
+        .setFooter(`Cours annulé de ${awayNotif.subject}`)
+        .setURL(process.env.PRONOTE_URL)
+        .setColor("#70C7A4");
+
+    client.channels.cache.get(process.env.AWAY_CHANNEL_ID).send(embed).then((e) => {
         e.react("✅");
     });
 };
