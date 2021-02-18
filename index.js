@@ -8,8 +8,6 @@ const pronote = require("pronote-api");
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
-const DATE_END_OF_YEAR = new Date(Date.now() + 31536000000);
-
 let cache = null;
 
 /**
@@ -56,7 +54,7 @@ const pronoteSynchronization = async () => {
     if (!session) return;
 
     // Vérification des devoirs
-    const homeworks = await session.homeworks(Date.now(), DATE_END_OF_YEAR);
+    const homeworks = await session.homeworks(Date.now(), session.params.lastDay);
     const newHomeworks = homeworks.filter((work) => !(cache.homeworks.some((cacheWork) => cacheWork.description === work.description)));
     if (newHomeworks.length > 0 && newHomeworks.length <= 3) {
         newHomeworks.forEach((work) => sendDiscordNotificationHomework(work));
