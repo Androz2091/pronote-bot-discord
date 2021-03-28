@@ -89,7 +89,6 @@ const pronoteSynchronization = async () => {
     nextWeekDay.setDate(nextWeekDay.getDate() + 30);
     const timetable = await session.timetable(new Date(), nextWeekDay);
     const awayNotifications = [];
-    timetable.filter((lesson) => lesson.isAway).forEach((lesson) => {
     timetable.filter((lesson) => lesson.isAway || lesson.isCancelled).forEach((lesson) => {
         if (!cache.lessonsAway.some((lessonID) => lessonID === lesson.id)){
             awayNotifications.push({
