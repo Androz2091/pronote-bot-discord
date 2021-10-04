@@ -3,16 +3,28 @@
   "version": "1.2.2",
   "description": "Un bot Discord pour envoyer des notifications Pronote dans un serveur Discord 📚",
   "main": "index.js",
-  "repository": "https://github.com/Androz2091/pronote-bot-discord.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Androz2091/pronote-bot-discord.git"
+  },
   "author": "Androz2091 <androz2091@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^12.0.2",
+    "axios": "^0.21.4",
+    "discord.js": "^13.1.0",
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
-    "pronote-api": "^2.3.2"
+    "node-fetch": "^2.6.1",
+    "pronote-api-again": "^2.3.5"
   },
   "devDependencies": {
     "eslint": "^7.10.0"
+  },
+  "bugs": {
+    "url": "https://github.com/Merlode11/pronote-bot-discord/issues"
+  },
+  "homepage": "https://github.com/Merlode11/pronote-bot-discord#readme",
+  "scripts": {
+    "run": "node index.js"
   }
 }
