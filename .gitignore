@@ -5,3 +5,6 @@ yarn.lock
 # Config
 .env
 cache.json
+
+.idea
+.vscode
