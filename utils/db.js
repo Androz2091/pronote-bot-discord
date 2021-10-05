@@ -17,6 +17,7 @@ module.exports = client => {
         marks: {
             subjects: []
         },
-        lessonsAway: []
+        lessonsAway: [],
+        infos: [],
     });
 };
