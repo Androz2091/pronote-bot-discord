@@ -12,7 +12,7 @@ module.exports = client => {
     /**
      * Réinitialise le cache
      */
-    client.db.resetCache = () => client.writeCache({
+    client.db.resetCache = () => client.db.writeCache({
         homeworks: [],
         marks: {
             subjects: []
