@@ -19,7 +19,7 @@ module.exports = {
                     "\nSalle: " + (cour.room ?? " ? ") +
                     "\nÀ " + cour.from.toLocaleTimeString().split(":")[0] +
                     "h" + cour.from.toLocaleTimeString().split(":")[1] +
-                    cour.isCancelled || cour.isAway ? "\n⚠__**Cour annulé**__" : ""
+                    (cour.isCancelled || cour.isAway ? "\n⚠__**Cour annulé**__" : "")
                 };
             });
 
