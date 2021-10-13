@@ -124,6 +124,7 @@ Sinon, l'API propose de se connecter à Pronote avec des comptes des académies 
 </details>
 
 
+
 ##### `PRONOTE_USERNAME` et `PRONOTE_PASSWORD`
 Indiquez ici votre identifiant (`USERNAME`) et votre mot de passe (`PASSWORD`) pour que le bot puisse se connecter à pronote via votre compte
 
