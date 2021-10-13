@@ -115,7 +115,7 @@ module.exports = async (client) => {
     const time = hour + ":" + min + ":" + sec;
 
     const day = `${today.getDate()}`.length === 1 ? `0${today.getDate()}` : today.getDate();
-    const month = `${today.getMonth()}`.length === 1 ? `0${today.getMonth()+1}` : (today.getMonth()+1);
+    const month = `${today.getMonth()+1}`.length === 1 ? `0${today.getMonth()+1}` : (today.getMonth()+1);
     const date = day  +"/"+ month+"/"+today.getFullYear();
 
     if (!hasAlready) {

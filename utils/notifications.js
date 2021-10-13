@@ -7,6 +7,8 @@ async function asyncForEach(array, callback) {
 const moment = require("moment");
 moment.locale("fr");
 
+let averageMsg = null
+
 module.exports = client => {
     /**
      * Envoi un notification de note sur Discord
@@ -15,12 +17,13 @@ module.exports = client => {
      */
     client.notif.mark = async (marksNotifications, cachedMarks) => {
         const channel = client.channels.cache.get(process.env.MARKS_CHANNEL_ID);
-        let lastMsg = channel.lastMessage;
-        if (!lastMsg) {
-            lastMsg = await channel.messages.fetch({limit: 1});
-            lastMsg = lastMsg.first();
+        if (!averageMsg) {
+            averageMsg = channel.lastMessage;
+            if (!averageMsg) {
+                averageMsg = await channel.messages.fetch({limit: 1});
+                averageMsg = averageMsg.first();
+            }
         }
-
         await asyncForEach(marksNotifications, markObj => {
             const mark = markObj.mark;
             const subject = markObj.subject;
@@ -46,18 +49,18 @@ module.exports = client => {
 
             channel.send({embeds:[embed]});
         });
-        if (lastMsg.author.id === client.user.id) {
-            const lastEmbed = lastMsg.embeds[0];
-            if (!lastEmbed) return new Error("The last message has any embeds");
-            if (lastEmbed.title.toUpperCase() === "moyenne générale".toUpperCase()) await lastMsg.delete();
-            const generalEmbed = new MessageEmbed()
-                .setTitle("moyenne générale".toUpperCase())
-                .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks.averages.student}/20\n**Moyenne générale de la classe :** ${client.cache.marks.averages.studentClass}/20`)
-                .addField("__Moyennes précédentes__", `**Élève :** ${cachedMarks.averages.student}/20\n**Classe :** ${cachedMarks.averages.studentClass}/20`)
-                .addField("Modification", `**Élève :** ${Math.round((client.cache.marks.averages.student-cachedMarks.averages.student)*100)/100}\n**Classe :** ${Math.round((client.cache.marks.averages.studentClass-cachedMarks.averages.studentClass)*100)/100}`)
-                .setColor("#70C7A4");
-            channel.send({embeds: [generalEmbed]});
-        }
+        if (
+            averageMsg &&
+            averageMsg.author.id === client.user.id &&
+            averageMsg.embeds[0].title.toUpperCase() === "moyenne générale".toUpperCase()
+            ) await lastMsg.delete();
+        const generalEmbed = new MessageEmbed()
+            .setTitle("moyenne générale".toUpperCase())
+            .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks.averages.student}/20\n**Moyenne générale de la classe :** ${client.cache.marks.averages.studentClass}/20`)
+            .addField("__Moyennes précédentes__", `**Élève :** ${cachedMarks.averages.student}/20\n**Classe :** ${cachedMarks.averages.studentClass}/20`)
+            .addField("Modification", `**Élève :** ${Math.round((client.cache.marks.averages.student-cachedMarks.averages.student)*100)/100}\n**Classe :** ${Math.round((client.cache.marks.averages.studentClass-cachedMarks.averages.studentClass)*100)/100}`)
+            .setColor("#70C7A4");
+        averageMsg = await channel.send({embeds: [generalEmbed]});
     };
 
     /**
@@ -74,10 +77,17 @@ module.exports = client => {
             .setColor("#70C7A4");
 
         if (homework.files.length >= 1) {
-            embed.addField("Pièces jointes", homework.files.map((file) => {
+            const filesText = Util.splitMessage(homework.files.map((file) => {
                 if (/^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/g.test(file.name)) file.url = file.name;
                 return `[${file.name}](${file.url})`;
-            }).join("\n"), false);
+            }).join("\n"), {
+                maxLength: 1024
+            });
+
+            embed.addField("Pièces jointes", filesText.shift(), true);
+            if (filesText.length) filesText.forEach(str => {
+                embed.addField("\u200b", str, true);
+            });
         }
 
         client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID).send({embeds: [embed]}).then((e) => {
@@ -110,7 +120,7 @@ module.exports = client => {
     client.notif.info = (infoNotif) => {
         const embed = new MessageEmbed()
             .setAuthor(infoNotif.author, "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
-            .setTitle(infoNotif.title)
+            .setTitle(infoNotif.title ?? "Pas de titre")
             .setDescription(`${infoNotif.content}`)
             .setFooter(`Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`)
             .setURL(process.env.PRONOTE_URL)
