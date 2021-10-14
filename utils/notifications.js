@@ -53,7 +53,7 @@ module.exports = client => {
             averageMsg &&
             averageMsg.author.id === client.user.id &&
             averageMsg.embeds[0].title.toUpperCase() === "moyenne générale".toUpperCase()
-            ) await lastMsg.delete();
+            ) await averageMsg.delete();
         const generalEmbed = new MessageEmbed()
             .setTitle("moyenne générale".toUpperCase())
             .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks.averages.student}/20\n**Moyenne générale de la classe :** ${client.cache.marks.averages.studentClass}/20`)
