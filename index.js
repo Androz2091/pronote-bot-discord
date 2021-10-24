@@ -6,7 +6,9 @@ moment.locale("fr");
 const pronote = require("pronote-api");
 
 const Discord = require("discord.js");
-const client = new Discord.Client();
+const client = new Discord.Client({
+    intents: [Discord.Intents.FLAGS.GUILDS]
+});
 
 let cache = null;
 
@@ -131,7 +133,9 @@ const sendDiscordNotificationMark = (subject, mark) => {
         .setURL(process.env.PRONOTE_URL)
         .setColor("#70C7A4");
 
-    client.channels.cache.get(process.env.MARKS_CHANNEL_ID).send(embed).then((e) => {
+    client.channels.cache.get(process.env.MARKS_CHANNEL_ID).send({
+        embeds: [embed]
+    }).then((e) => {
         e.react("✅");
     });
 }; 
@@ -154,7 +158,9 @@ const sendDiscordNotificationHomework = (homework) => {
         }).join("\n"), false);
     }
 
-    client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID).send(embed).then((e) => {
+    client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID).send({
+        embeds: [embed]
+    }).then((e) => {
         e.react("✅");
     });
 };
@@ -171,7 +177,9 @@ const sendDiscordNotificationAway = (awayNotif) => {
         .setURL(process.env.PRONOTE_URL)
         .setColor("#70C7A4");
 
-    client.channels.cache.get(process.env.AWAY_CHANNEL_ID).send(embed).then((e) => {
+    client.channels.cache.get(process.env.AWAY_CHANNEL_ID).send({
+        embeds: [embed]
+    }).then((e) => {
         e.react("✅");
     });
 };

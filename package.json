@@ -7,10 +7,10 @@
   "author": "Androz2091 <androz2091@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^12.0.2",
+    "discord.js": "^13.2.0",
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
-    "pronote-api": "^2.3.2"
+    "pronote-api": "EduWireApps/pronote-api"
   },
   "devDependencies": {
     "eslint": "^7.10.0"
