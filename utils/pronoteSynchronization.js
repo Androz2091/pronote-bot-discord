@@ -56,12 +56,43 @@ module.exports = async (client) => {
     });
     if (marksNotifications.length > 0) {
         client.notif.mark(marksNotifications, client.cache.marks);
+        const date = new Date();
+        const madeMarks = [];
+        marksNotifications.forEach(n => {
+            const subject = client.cache.marks.subjects.find(s => n.subject.name === s.name);
+            if (!subject) {
+                client.cache.marks.subjects.push(Object.assign(n.subject, {averagesHistory: [{
+                    date,
+                    student: n.subject.averages.student,
+                    studentClass: n.subject.averages.studentClass,
+                }]
+                }));
+                madeMarks.push(n.subject.name);
+            } else subject.marks.push(n.mark);
+            if (!madeMarks.includes(n.subject.name)) {
+                subject.averages = n.subject.averages;
+                if (!subject.averagesHistory) subject.averagesHistory = [];
+                subject.averagesHistory.push({
+                    date,
+                    student: n.subject.averages.student,
+                    studentClass: n.subject.averages.studentClass,
+                });
+                client.cache.marks.subjects[client.cache.marks.subjects.findIndex(s => n.subject.name === s.name)] = subject;
+                madeMarks.push(n.subject.name);
+            }
+        });
+        client.cache.marks.averages.student = marks.averages.student;
+        client.cache.marks.averages.studentClass = marks.averages.studentClass;
+
+        if (!client.cache.marks.averages.history) client.cache.marks.averages.history = [];
+        client.cache.marks.averages.history.push({
+            date,
+            student: marks.averages.student,
+            studentClass: marks.averages.studentClass
+        });
     }
     // Mise à jour du client.cache pour les notes
-    client.db.writeCache({
-        ...client.cache,
-        marks
-    });
+    client.db.writeCache(client.cache);
 
     const nextWeekDay = new Date();
     nextWeekDay.setDate(nextWeekDay.getDate() + 30);
@@ -116,7 +147,7 @@ module.exports = async (client) => {
 
     const day = `${today.getDate()}`.length === 1 ? `0${today.getDate()}` : today.getDate();
     const month = `${today.getMonth()+1}`.length === 1 ? `0${today.getMonth()+1}` : (today.getMonth()+1);
-    const date = day  +"/"+ month+"/"+today.getFullYear();
+    const date = day+"/"+ month+"/"+today.getFullYear();
 
     if (!hasAlready) {
         await client.session.logout();

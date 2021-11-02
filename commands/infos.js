@@ -9,16 +9,17 @@ function getFetchDate(session){
     return { from, to };
 }
 const { MessageEmbed } = require("discord.js");
+const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
 
 module.exports = {
     data: {
-        name: "infos",
+        name: scriptName,
         description: "Vous fournis les informations sur 'élève",
         options: [],
     },
     execute: async interaction => {
         const session = interaction.client.session;
-        
+
         const { from, to } = getFetchDate(session);
         const timetable = await session.timetable(from, to);
         const alltimetable = await session.timetable(session.params.firstDay, session.params.lastDay);
@@ -40,7 +41,8 @@ module.exports = {
             .setAuthor(interaction.user.username, interaction.user.displayAvatarURL({dynamic: true}))
             .setThumbnail(session.user.avatar)
             .setTitle(name+", "+classe)
-            .setDescription("Cours aujourd'hui/Année : "+timetable.length+" | "+alltimetable.length+"\nControles : "+evaluations.length+"\nAbsences/Retards : "+nombreAbsences+"/"+nombreRetards+"\nDevoirs : "+allhomeworks.length+"\nMoyenne : "+moyenne);
+            .setDescription("Cours aujourd'hui/Année : "+timetable.length+" | "+alltimetable.length+"\nControles : "+evaluations.length+"\nAbsences/Retards : "+nombreAbsences+"/"+nombreRetards+"\nDevoirs : "+allhomeworks.length+"\nMoyenne : "+moyenne)
+            .setFooter("Bot par Merlode#8128");
 
         return await interaction.editReply({
             embeds: [embed]

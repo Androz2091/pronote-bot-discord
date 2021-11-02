@@ -7,9 +7,11 @@ async function asyncForEach(array, callback) {
 const moment = require("moment");
 moment.locale("fr");
 
-let averageMsg = null
+let averageMsg = null;
 
 module.exports = client => {
+    client.notif = {};
+
     /**
      * Envoi un notification de note sur Discord
      * @param {Array} marksNotifications La matière de la note
@@ -17,6 +19,7 @@ module.exports = client => {
      */
     client.notif.mark = async (marksNotifications, cachedMarks) => {
         const channel = client.channels.cache.get(process.env.MARKS_CHANNEL_ID);
+        if (!channel) return console.log(new ReferenceError("MARKS_CHANNEL_ID is not defined"));
         if (!averageMsg) {
             averageMsg = channel.lastMessage;
             if (!averageMsg) {
@@ -24,6 +27,7 @@ module.exports = client => {
                 averageMsg = averageMsg.first();
             }
         }
+
         await asyncForEach(marksNotifications, markObj => {
             const mark = markObj.mark;
             const subject = markObj.subject;
@@ -45,7 +49,7 @@ module.exports = client => {
                 .addField("__Matière__", `**Moyenne de l'élève :** ${subject.averages.student}/20\n**Moyenne de la classe :** ${subject.averages.studentClass}/20`)
                 .setFooter(`Date de l'évaluation : ${moment(mark.date).format("dddd Do MMMM")}`)
                 .setURL(process.env.PRONOTE_URL)
-                .setColor("#70C7A4");
+                .setColor(subject.color ?? "#70C7A4");
 
             channel.send({embeds:[embed]});
         });
@@ -53,44 +57,44 @@ module.exports = client => {
             averageMsg &&
             averageMsg.author.id === client.user.id &&
             averageMsg.embeds[0].title.toUpperCase() === "moyenne générale".toUpperCase()
-            ) await averageMsg.delete();
+        ) await averageMsg.delete();
+
+        const studentEdit = Math.round((client.cache.marks.averages.student-cachedMarks.averages.student)*100)/100;
+        const classEdit = Math.round((client.cache.marks.averages.studentClass-cachedMarks.averages.studentClass)*100)/100;
+
         const generalEmbed = new MessageEmbed()
             .setTitle("moyenne générale".toUpperCase())
             .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks.averages.student}/20\n**Moyenne générale de la classe :** ${client.cache.marks.averages.studentClass}/20`)
             .addField("__Moyennes précédentes__", `**Élève :** ${cachedMarks.averages.student}/20\n**Classe :** ${cachedMarks.averages.studentClass}/20`)
-            .addField("Modification", `**Élève :** ${Math.round((client.cache.marks.averages.student-cachedMarks.averages.student)*100)/100}\n**Classe :** ${Math.round((client.cache.marks.averages.studentClass-cachedMarks.averages.studentClass)*100)/100}`)
+            .addField("Modification", `**Élève :** ${studentEdit > 0 ? "+"+studentEdit : studentEdit}\n**Classe :** ${classEdit > 0 ? "+"+classEdit : classEdit}`)
             .setColor("#70C7A4");
         averageMsg = await channel.send({embeds: [generalEmbed]});
     };
 
     /**
      * Envoi une notification de devoir sur Discord
-     * @param {pronote.Homework} homework Le devoir à envoyer
+     * @param {any} homework Le devoir à envoyer
      */
     client.notif.homework = (homework) => {
+        const channel = client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID);
+        if (!channel) return console.log(new ReferenceError("HOMEWORKS_CHANNEL_ID is not defined"));
+
         const embed = new MessageEmbed()
             .setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
             .setTitle(homework.subject.toUpperCase())
             .setDescription(homework.description)
             .setFooter(`Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`)
             .setURL(homework.trelloURL ? homework.trelloURL : process.env.PRONOTE_URL)
-            .setColor("#70C7A4");
+            .setColor(homework.color ?? "#70C7A4");
 
         if (homework.files.length >= 1) {
-            const filesText = Util.splitMessage(homework.files.map((file) => {
+            embed.addField("Pièces jointes", homework.files.map((file) => {
                 if (/^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/g.test(file.name)) file.url = file.name;
                 return `[${file.name}](${file.url})`;
-            }).join("\n"), {
-                maxLength: 1024
-            });
-
-            embed.addField("Pièces jointes", filesText.shift(), true);
-            if (filesText.length) filesText.forEach(str => {
-                embed.addField("\u200b", str, true);
-            });
+            }).join("\n"), false);
         }
 
-        client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID).send({embeds: [embed]}).then((e) => {
+        channel.send({embeds: [embed]}).then((e) => {
             if (homework.done) e.react("✅").then(() => {});
         });
     };
@@ -100,6 +104,9 @@ module.exports = client => {
      * @param {any} awayNotif Les informations sur le cours annulé
      */
     client.notif.away = (awayNotif) => {
+        const channel = client.channels.cache.get(process.env.AWAY_CHANNEL_ID);
+        if (!channel) return console.log(new ReferenceError("AWAY_CHANNEL_ID is not defined"));
+
         const embed = new MessageEmbed()
             .setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
             .setTitle(awayNotif.subject.toUpperCase())
@@ -108,7 +115,7 @@ module.exports = client => {
             .setURL(process.env.PRONOTE_URL)
             .setColor("#70C7A4");
 
-        client.channels.cache.get(process.env.AWAY_CHANNEL_ID).send({embeds: [embed]}).then(e => {
+        channel.send({embeds: [embed]}).then(e => {
             e.react("✅").then(() => {});
         });
     };
@@ -118,13 +125,16 @@ module.exports = client => {
      * @param {any} infoNotif L'information à envoyer
      */
     client.notif.info = (infoNotif) => {
+        const channel = client.channels.cache.get(process.env.INFOS_CHANNEL_ID);
+        if (!channel) return console.log(new ReferenceError("INFOS_CHANNEL_ID is not defined"));
+
         const embed = new MessageEmbed()
-            .setAuthor(infoNotif.author, "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
             .setTitle(infoNotif.title ?? "Pas de titre")
             .setDescription(`${infoNotif.content}`)
             .setFooter(`Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`)
             .setURL(process.env.PRONOTE_URL)
             .setColor("#70C7A4");
+        if (infoNotif.author) embed.setAuthor(infoNotif.author, "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL);
 
         if (infoNotif.files.length >= 1) {
             const filesText = Util.splitMessage(infoNotif.files.map((file) => {
@@ -140,7 +150,7 @@ module.exports = client => {
             });
         }
 
-        client.channels.cache.get(process.env.INFOS_CHANNEL_ID).send({embeds: [embed]}).then(e => {
+        channel.send({embeds: [embed]}).then(e => {
             e.react("✅").then(() => {}).catch(console.error);
         });
     };

@@ -1,6 +1,8 @@
+const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
+
 module.exports = {
     data: {
-        name: "recheck",
+        name: scriptName,
         description: "Vérifier de nouveau les nouvelles notifications",
         options: [],
     },

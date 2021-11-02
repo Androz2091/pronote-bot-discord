@@ -1,25 +1,30 @@
 const { MessageEmbed } = require("discord.js");
+const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
 
 module.exports = {
     data: {
-        name: "cours",
+        name: scriptName,
         description: "Vous fournis l'emploi du temps de la journée",
         options: [],
     },
     execute: async interaction => {
         const client = interaction.client;
-        client.session.timetable().then((cours) => {
+
+        await client.session.timetable().then((cours) => {
             const embed = new MessageEmbed()
                 .setColor("#70C7A4")
-                .setTitle("Vous avez " + cours.length + " cours aujourd'hui :");
+                .setTitle("Vous avez " + cours.length + " cours aujourd'hui :")
+                .setFooter("Bot par Merlode#8128");
             embed.fields = cours.map((cour) => {
+                const subHomeworks = client.cache.homeworks.filter(h => h.subject === cour.subject && cour.from.getDate()+"/"+cour.from.getMonth() === h.for.getDate()+"/"+h.for.getMonth());
                 return {
-                    name: cour.subject.toLowerCase(cour.subject),
+                    name: cour.subject.toUpperCase(cour.subject),
                     value: "Professeur: " + cour.teacher +
-                    "\nSalle: " + (cour.room ?? " ? ") +
-                    "\nÀ " + cour.from.toLocaleTimeString().split(":")[0] +
-                    "h" + cour.from.toLocaleTimeString().split(":")[1] +
-                    (cour.isCancelled || cour.isAway ? "\n⚠__**Cour annulé**__" : "")
+                        "\nSalle: " + (cour.room ?? " ? ") +
+                        "\nÀ " + cour.from.toLocaleTimeString().split(":")[0] +
+                        "h" + cour.from.toLocaleTimeString().split(":")[1] +
+                        (subHomeworks.length && (!cour.isCancelled || !cour.isAway) ? `\n⚠**__\`${subHomeworks.length}\` Devoirs__**` : "") +
+                        (cour.isCancelled || cour.isAway ? "\n⚠__**Cour annulé**__" : "")
                 };
             });
 

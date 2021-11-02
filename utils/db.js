@@ -1,6 +1,8 @@
 const fs = require("fs");
 
 module.exports = client => {
+    client.db = {};
+
     /**
      * Écrit l'objet dans le cache et met à jour la variable
      * @param {object} newCache Le nouvel objet
@@ -18,6 +20,6 @@ module.exports = client => {
             subjects: []
         },
         lessonsAway: [],
-        infos: [],
+        infos: []
     });
 };

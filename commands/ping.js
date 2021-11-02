@@ -1,8 +1,9 @@
 const { MessageEmbed } = require("discord.js");
+const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
 
 module.exports = {
     data: {
-        name: "ping",
+        name: scriptName,
         description: "Ping le bot",
         options: [],
     },
@@ -19,7 +20,8 @@ module.exports = {
             .addField("Temps de fonctionnement", `${Math.floor(client.uptime / 1000 / 60).toString()} minutes`, true)
             .addField("Version", `\`discord.js : ${require("../package.json").dependencies["discord.js"]}\``, true)
             .addField("Salons", `${client.channels.cache.size.toString()}`, true)
-            .addField("Utilisateurs", `${client.guilds.cache.map(g => g.memberCount).reduce((a, b) => a + b)}`, true);
+            .addField("Utilisateurs", `${client.guilds.cache.map(g => g.memberCount).reduce((a, b) => a + b)}`, true)
+            .setFooter("Bot par Merlode#8128");
         return interaction.editReply({embeds: [embed], content: " "}).catch(console.error);
     }
 };

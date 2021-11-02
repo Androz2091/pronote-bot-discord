@@ -1,6 +1,8 @@
+const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
+
 module.exports = {
     data: {
-        name: "logout",
+        name: scriptName,
         description: "Se déconecter de Pronote",
         options: [],
     },
