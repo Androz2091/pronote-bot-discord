@@ -48,6 +48,8 @@ Ce bot *incroyable* peut vous permettre de réaliser plusieurs actions et d'avoi
 - `/recheck` pour effectuer de nouveau une vérification
 - `/ping` pour avoir le ping du bot et quelques informations
 - `/info` pour avoir les informations sur le compte
+- `/history` vous donne la liste des modification d'une moyenne (classe/élève pour une matière ou non)
+- `/graph` vous donne un graphique des modification d'une moyenne (classe/élève pour une matière ou non)
 
 ## Installation
 
