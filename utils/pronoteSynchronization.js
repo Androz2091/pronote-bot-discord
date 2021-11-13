@@ -20,28 +20,21 @@ module.exports = async (client) => {
 
     // Vérification des devoirs
     const homeworks = await session.homeworks(Date.now(), session.params.lastDay);
-    const newHomeworks = homeworks.filter((work) => !(client.cache.homeworks.some((cacheWork) => cacheWork.description === work.description)));
-    if (newHomeworks.length > 0) {
-        newHomeworks.forEach((work) => {
-            client.notif.homework(work);
-        });
+    if (homeworks) {
+        const newHomeworks = homeworks.filter((work) => !(client.cache.homeworks.some((cacheWork) => cacheWork.description === work.description)));
+        if (newHomeworks.length > 0) {
+            newHomeworks.forEach((work) => {
+                client.notif.homework(work);
+            });
 
-    }
-
-    const oldHomeworks = homeworks.filter((work) => client.cache.homeworks.some((cacheWork) => cacheWork.description === work.description));
-    oldHomeworks.forEach(work => {
-        const cachedWork = client.cache.homeworks.find(cWork => cWork.description === work.description);
-        if (cachedWork.trelloID) {
-            work.trelloID = cachedWork.trelloID;
-            work.trelloURL = cachedWork.trelloURL;
         }
-    });
 
-    // Mise à jour du client.cache pour les devoirs
-    client.db.writeCache({
-        ...client.cache,
-        homeworks
-    });
+        // Mise à jour du client.cache pour les devoirs
+        client.db.writeCache({
+            ...client.cache,
+            homeworks
+        });
+    }
 
     const marks = await session.marks("trimester");
     const marksNotifications = [];
@@ -55,7 +48,7 @@ module.exports = async (client) => {
         }
     });
     if (marksNotifications.length > 0) {
-        client.notif.mark(marksNotifications, client.cache.marks);
+        const marksCache = JSON.parse(JSON.stringify(client.cache.marks));
         const date = new Date();
         const madeMarks = [];
         marksNotifications.forEach(n => {
@@ -81,6 +74,11 @@ module.exports = async (client) => {
                 madeMarks.push(n.subject.name);
             }
         });
+        if (!client.cache.marks.averages) client.cache.marks.averages = {
+            student: 0,
+            studentClass: 0,
+            history: []
+        };
         client.cache.marks.averages.student = marks.averages.student;
         client.cache.marks.averages.studentClass = marks.averages.studentClass;
 
@@ -90,6 +88,8 @@ module.exports = async (client) => {
             student: marks.averages.student,
             studentClass: marks.averages.studentClass
         });
+
+        client.notif.mark(marksNotifications, marksCache);
     }
     // Mise à jour du client.cache pour les notes
     client.db.writeCache(client.cache);
