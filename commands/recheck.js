@@ -7,6 +7,7 @@ module.exports = {
         options: [],
     },
     execute: async interaction => {
+        delete require.cache[require.resolve("../utils/pronoteSynchronization")];
         await require("../utils/pronoteSynchronization")(interaction.client);
 
         return interaction.editReply("✅ | Une nouvelle vérification a bien été effectuée");
