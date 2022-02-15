@@ -19,7 +19,7 @@ module.exports = client => {
      */
     client.notif.mark = async (marksNotifications, cachedMarks) => {
         const channel = client.channels.cache.get(process.env.MARKS_CHANNEL_ID);
-        if (!channel) return console.log(new ReferenceError("MARKS_CHANNEL_ID is not defined"));
+        if (!channel) return new ReferenceError("MARKS_CHANNEL_ID is not defined");
         if (!averageMsg) {
             averageMsg = channel.lastMessage;
             if (!averageMsg) {
@@ -41,7 +41,9 @@ module.exports = client => {
                 better = "**__Tu as une note au dessus de la moyenne de la classe !__**\n";
                 embed.setThumbnail("https://i.imgur.com/3P5DfAZ.gif");
             }
-            const infos = better + `**Note de l'élève :** ${mark.value}/${mark.scale}\n**Moyenne de la classe :** ${mark.average}/${mark.scale}\n\n**Note la plus basse :** ${mark.min}/${mark.scale}\n**Note la plus haute :** ${mark.max}/${mark.scale}`;
+            let studentNote = `**Note de l'élève :** ${mark.value}/${mark.scale}`;
+            if (mark.scale !== 20) studentNote += ` *(${(mark.value/mark.scale * 20).toFixed(2)}/20)*`;
+            const infos = better + studentNote + `\n**Moyenne de la classe :** ${mark.average}/${mark.scale}\n\n**Note la plus basse :** ${mark.min}/${mark.scale}\n**Note la plus haute :** ${mark.max}/${mark.scale}`;
             const description = mark.title ? `${mark.title}\n\n${infos}` : infos;
             embed.setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
                 .setTitle(subject.name.toUpperCase())
@@ -77,7 +79,7 @@ module.exports = client => {
      */
     client.notif.homework = (homework) => {
         const channel = client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID);
-        if (!channel) return console.log(new ReferenceError("HOMEWORKS_CHANNEL_ID is not defined"));
+        if (!channel) return new ReferenceError("HOMEWORKS_CHANNEL_ID is not defined");
 
         const embed = new MessageEmbed()
             .setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
@@ -105,7 +107,7 @@ module.exports = client => {
      */
     client.notif.away = (awayNotif) => {
         const channel = client.channels.cache.get(process.env.AWAY_CHANNEL_ID);
-        if (!channel) return console.log(new ReferenceError("AWAY_CHANNEL_ID is not defined"));
+        if (!channel) return new ReferenceError("AWAY_CHANNEL_ID is not defined");
 
         const embed = new MessageEmbed()
             .setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
@@ -126,7 +128,7 @@ module.exports = client => {
      */
     client.notif.info = (infoNotif) => {
         const channel = client.channels.cache.get(process.env.INFOS_CHANNEL_ID);
-        if (!channel) return console.log(new ReferenceError("INFOS_CHANNEL_ID is not defined"));
+        if (!channel) return new ReferenceError("INFOS_CHANNEL_ID is not defined");
 
         const embed = new MessageEmbed()
             .setTitle(infoNotif.title ?? "Pas de titre")
