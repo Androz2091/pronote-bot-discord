@@ -9,12 +9,13 @@ module.exports = client => {
      */
     client.db.writeCache = (newCache) => {
         client.cache = newCache;
-        fs.writeFileSync("cache.json", JSON.stringify(newCache, null, 4), "utf-8");
+        fs.writeFileSync(newCache.classe ? "cache_"+newCache.classe.toUpperCase()+".json" : "cache.json", JSON.stringify(newCache, null, 4), "utf-8");
     };
     /**
      * Réinitialise le cache
      */
     client.db.resetCache = () => client.db.writeCache({
+        classe: null,
         homeworks: [],
         marks: {
             subjects: []

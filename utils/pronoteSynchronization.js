@@ -39,7 +39,7 @@ module.exports = async (client) => {
     const marks = await session.marks("trimester");
     const marksNotifications = [];
     marks.subjects.forEach((subject) => {
-        const cachedSubject = client.cache.marks.subjects.find((sub) => sub.name === subject.name);
+        const cachedSubject = client.cache.marks.subjects.find((sub) => sub.name === subject.name && sub.color === subject.color);
         if (cachedSubject) {
             const newMarks = subject.marks.filter((mark) => !(cachedSubject.marks.some((cacheMark) => cacheMark.id === mark.id)));
             newMarks.forEach((mark) => marksNotifications.push({ subject, mark }));
@@ -70,7 +70,7 @@ module.exports = async (client) => {
                     student: n.subject.averages.student,
                     studentClass: n.subject.averages.studentClass,
                 });
-                client.cache.marks.subjects[client.cache.marks.subjects.findIndex(s => n.subject.name === s.name)] = subject;
+                client.cache.marks.subjects[client.cache.marks.subjects.findIndex(s => n.subject.name === s.name && n.subject.name === s.name)] = subject;
                 madeMarks.push(n.subject.name);
             }
         });

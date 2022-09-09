@@ -8,7 +8,7 @@ module.exports = {
         description: "Teste un code avec le bot",
         options: [
             {
-                type: "STRING",
+                type: Discord.ApplicationCommandOptionType.String,
                 name: "code",
                 description: "Le code a tester",
                 required: true
@@ -33,7 +33,7 @@ module.exports = {
                 .replace("client.token", "'[TOKEN HIDDEN]'");
 
         }
-        const result = new Promise(async (resolve) =>  resolve(await eval(content)));
+        const result = await new Promise(async (resolve) => resolve(await eval(content)));
         return result.then(async (output) => {
             if (typeof output !== "string") {
                 output = require("util").inspect(output, { depth: 0 });
@@ -42,7 +42,8 @@ module.exports = {
                 output = output.replace(client.token, "[TOKEN HIDDEN]");
             }
             return interaction.editReply({
-                embeds: [new Discord.MessageEmbed().setColor("#36393F").setDescription("```js\n"+output+"\n```")]
+                embeds: [new Discord.EmbedBuilder().setColor("#36393F").setDescription("```js\n"+output+"\n```")],
+                components: [client.bugActionRow]
             });
         }).catch(async (err) => {
             err = err.toString();
@@ -50,7 +51,8 @@ module.exports = {
                 err = err.replace(client.token, "[TOKEN HIDDEN]");
             }
             return interaction.editReply({
-                embeds: [new Discord.MessageEmbed().setColor("#36393F").setDescription("```js\n"+err+"\n```")]
+                embeds: [new Discord.EmbedBuilder().setColor("#36393F").setDescription("```js\n"+err+"\n```")],
+                components: [client.bugActionRow]
             });
         });
     }

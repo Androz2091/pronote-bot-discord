@@ -1,6 +1,6 @@
-const cache = require("../cache.json");
+const cache = require("../cache_1G1.json");
 const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
-const { MessageAttachment, MessageEmbed} = require("discord.js");
+const { MessageAttachment, EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
 const width = 800;
 const height = 300;
@@ -9,8 +9,8 @@ const ticksOptions = { ticks: { font: {weight: "bold"}, color: "#fff"} };
 const options = {
     // Hide legend
     plugins: {legend: { /*display: false,*/ labels: {
-        font: {weight: "bold"}, color: "#fff"
-    }}},
+                font: {weight: "bold"}, color: "#fff"
+            }}},
     scales: { yAxes: ticksOptions, xAxes: ticksOptions }
 };
 
@@ -45,16 +45,16 @@ module.exports = {
         description: "Génère un graphique de l'évolution des moyennes",
         options: [
             {
-                type: "STRING",
+                type: ApplicationCommandOptionType.String,
                 name: "matière",
                 description: "Sélectionne l'historique d'une matière spécifique",
                 required: false,
                 choices: cache.marks.subjects.map(mark => {
                     return {name: mark.name.toUpperCase(), value: mark.name};
-                })
+                }).splice(25)
             },
             {
-                type: "STRING",
+                type: ApplicationCommandOptionType.String,
                 name: "moyenne",
                 description: "Sélectionne l'historique d'une moyenne spécifique",
                 required: false,
@@ -64,7 +64,7 @@ module.exports = {
                 ]
             },
             {
-                type: "INTEGER",
+                type: ApplicationCommandOptionType.Integer,
                 name: "nombre",
                 description: "Donne le nombre de valeur à afficher",
                 required: false,
@@ -80,7 +80,7 @@ module.exports = {
         if (number > 25) number = 25;
         if (number === 0) number = 1;
         let data = [];
-        
+
         if (subject) {
             data = interaction.client.cache.marks.subjects.find(s => s.name === subject).averagesHistory;
         } else {
@@ -95,11 +95,11 @@ module.exports = {
 
             return day  +"/"+ month+"/"+ timestamp.getFullYear();
         }));
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setColor("#70C7A4")
             .setTitle(`Graphique des moyennes ${subject ? `de \`${subject.toUpperCase()}\` ` : ""}pour ${averageType === "student" ? "l'élève": "la classe"}`)
             .setImage("attachment://graph.png")
-            .setFooter("Bot par Merlode#8128");
+            .setFooter({text: "Bot par Merlode#8128"});
 
 
         return interaction.editReply({embeds: [embed], files: [graph]}).catch(console.error);

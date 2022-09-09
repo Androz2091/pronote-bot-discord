@@ -4,7 +4,7 @@ yarn.lock
 
 # Config
 .env
-cache.json
+cache*.json
 
 
 # IDEs

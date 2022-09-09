@@ -1,4 +1,4 @@
-const { MessageEmbed, Util } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
@@ -8,6 +8,48 @@ const moment = require("moment");
 moment.locale("fr");
 
 let averageMsg = null;
+
+function verifyString(
+    data,
+    error = Error,
+    errorMessage = `Expected a string, got ${data} instead.`,
+    allowEmpty = true,
+) {
+    if (typeof data !== "string") throw new error(errorMessage);
+    if (!allowEmpty && data.length === 0) throw new error(errorMessage);
+    return data;
+}
+
+function splitMessage(text, { maxLength = 2000, char = "\n", prepend = "", append = "" } = {}) {
+
+
+    text = verifyString(text);
+    if (text.length <= maxLength) return [text];
+    let splitText = [text];
+    if (Array.isArray(char)) {
+        while (char.length > 0 && splitText.some(elem => elem.length > maxLength)) {
+            const currentChar = char.shift();
+            if (currentChar instanceof RegExp) {
+                splitText = splitText.flatMap(chunk => chunk.match(currentChar));
+            } else {
+                splitText = splitText.flatMap(chunk => chunk.split(currentChar));
+            }
+        }
+    } else {
+        splitText = text.split(char);
+    }
+    if (splitText.some(elem => elem.length > maxLength)) throw new RangeError("SPLIT_MAX_LEN");
+    const messages = [];
+    let msg = "";
+    for (const chunk of splitText) {
+        if (msg && (msg + char + chunk + append).length > maxLength) {
+            messages.push(msg + append);
+            msg = prepend;
+        }
+        msg += (msg && msg !== prepend ? char : "") + chunk;
+    }
+    return messages.concat(msg).filter(m => m);
+}
 
 module.exports = client => {
     client.notif = {};
@@ -32,7 +74,7 @@ module.exports = client => {
             const mark = markObj.mark;
             const subject = markObj.subject;
 
-            const embed = new MessageEmbed();
+            const embed = new EmbedBuilder();
             let better = "";
             if (mark.value === mark.max) {
                 better = "**__Tu as la meilleure note de la classe !__**\n";
@@ -42,14 +84,22 @@ module.exports = client => {
                 embed.setThumbnail("https://i.imgur.com/3P5DfAZ.gif");
             }
             let studentNote = `**Note de l'élève :** ${mark.value}/${mark.scale}`;
-            if (mark.scale !== 20) studentNote += ` *(${(mark.value/mark.scale * 20).toFixed(2)}/20)*`;
-            const infos = better + studentNote + `\n**Moyenne de la classe :** ${mark.average}/${mark.scale}\n\n**Note la plus basse :** ${mark.min}/${mark.scale}\n**Note la plus haute :** ${mark.max}/${mark.scale}`;
+            if (mark.scale !== 20) studentNote += ` *(${+(mark.value/mark.scale * 20).toFixed(2)}/20)*`;
+            const infos = better + studentNote + `\n**Moyenne de la classe :** ${mark.average}/${mark.scale}\n**Coefficient**: ${mark.coefficient}\n\n**Note la plus basse :** ${mark.min}/${mark.scale}\n**Note la plus haute :** ${mark.max}/${mark.scale}`;
             const description = mark.title ? `${mark.title}\n\n${infos}` : infos;
-            embed.setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
+            embed.setAuthor({
+                name: "Pronote",
+                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+                url: process.env.PRONOTE_URL
+            })
                 .setTitle(subject.name.toUpperCase())
                 .setDescription(description)
-                .addField("__Matière__", `**Moyenne de l'élève :** ${subject.averages.student}/20\n**Moyenne de la classe :** ${subject.averages.studentClass}/20`)
-                .setFooter(`Date de l'évaluation : ${moment(mark.date).format("dddd Do MMMM")}`)
+                .addFields([{
+                    name: "__Matière__",
+                    value: `**Moyenne de l'élève :** ${subject.averages.student}/20\n**Moyenne de la classe :** ${subject.averages.studentClass}/20`
+                }
+                ])
+                .setFooter({text: `Date de l'évaluation : ${moment(mark.date).format("dddd Do MMMM")}`})
                 .setURL(process.env.PRONOTE_URL)
                 .setColor(subject.color ?? "#70C7A4");
 
@@ -64,11 +114,17 @@ module.exports = client => {
         const studentEdit = Math.round((client.cache.marks.averages.student-cachedMarks.averages.student)*100)/100;
         const classEdit = Math.round((client.cache.marks.averages.studentClass-cachedMarks.averages.studentClass)*100)/100;
 
-        const generalEmbed = new MessageEmbed()
+        const generalEmbed = new EmbedBuilder()
             .setTitle("moyenne générale".toUpperCase())
             .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks.averages.student}/20\n**Moyenne générale de la classe :** ${client.cache.marks.averages.studentClass}/20`)
-            .addField("__Moyennes précédentes__", `**Élève :** ${cachedMarks.averages.student}/20\n**Classe :** ${cachedMarks.averages.studentClass}/20`)
-            .addField("Modification", `**Élève :** ${studentEdit > 0 ? "+"+studentEdit : studentEdit}\n**Classe :** ${classEdit > 0 ? "+"+classEdit : classEdit}`)
+            .addFields([{
+                name: "__Moyennes précédentes__",
+                value: `**Élève :** ${cachedMarks.averages.student}/20\n**Classe :** ${cachedMarks.averages.studentClass}/20`
+            }, {
+                name: "Modification",
+                value: `**Élève :** ${studentEdit > 0 ? "+"+studentEdit : studentEdit}\n**Classe :** ${classEdit > 0 ? "+"+classEdit : classEdit}`
+            }
+            ])
             .setColor("#70C7A4");
         averageMsg = await channel.send({embeds: [generalEmbed]});
     };
@@ -81,19 +137,27 @@ module.exports = client => {
         const channel = client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID);
         if (!channel) return new ReferenceError("HOMEWORKS_CHANNEL_ID is not defined");
 
-        const embed = new MessageEmbed()
-            .setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
+        const embed = new EmbedBuilder()
+            .setAuthor({
+                name: "Pronote",
+                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+                url: process.env.PRONOTE_URL,
+            })
             .setTitle(homework.subject.toUpperCase())
             .setDescription(homework.description)
-            .setFooter(`Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`)
+            .setFooter({text: `Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`})
             .setURL(homework.trelloURL ? homework.trelloURL : process.env.PRONOTE_URL)
             .setColor(homework.color ?? "#70C7A4");
 
         if (homework.files.length >= 1) {
-            embed.addField("Pièces jointes", homework.files.map((file) => {
-                if (/^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/g.test(file.name)) file.url = file.name;
-                return `[${file.name}](${file.url})`;
-            }).join("\n"), false);
+            embed.addFields([{
+                name: "Pièces jointes",
+                value: homework.files.map((file) => {
+                    if (/^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/g.test(file.name)) file.url = file.name;
+                    return `[${file.name}](${file.url})`;
+                }).join("\n"),
+                inline: false
+            }]);
         }
 
         channel.send({embeds: [embed]}).then((e) => {
@@ -109,17 +173,19 @@ module.exports = client => {
         const channel = client.channels.cache.get(process.env.AWAY_CHANNEL_ID);
         if (!channel) return new ReferenceError("AWAY_CHANNEL_ID is not defined");
 
-        const embed = new MessageEmbed()
-            .setAuthor("Pronote", "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL)
+        const embed = new EmbedBuilder()
+            .setAuthor({
+                name: "Pronote",
+                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+                url: process.env.PRONOTE_URL
+            })
             .setTitle(awayNotif.subject.toUpperCase())
-            .setDescription(`${awayNotif.teacher} sera absent le ${moment(awayNotif.from).format("dddd Do MMMM")}`)
-            .setFooter(`Cours annulé de ${awayNotif.subject}`)
             .setURL(process.env.PRONOTE_URL)
+            .setDescription(`${awayNotif.teacher} sera absent le ${moment(awayNotif.from).format("dddd Do MMMM")}`)
+            .setFooter({text: `Cours annulé de ${awayNotif.subject}`})
             .setColor("#70C7A4");
 
-        channel.send({embeds: [embed]}).then(e => {
-            e.react("✅").then(() => {});
-        });
+        channel.send({embeds: [embed]}).then(() => {});
     };
 
     /**
@@ -130,30 +196,28 @@ module.exports = client => {
         const channel = client.channels.cache.get(process.env.INFOS_CHANNEL_ID);
         if (!channel) return new ReferenceError("INFOS_CHANNEL_ID is not defined");
 
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setTitle(infoNotif.title ?? "Pas de titre")
             .setDescription(`${infoNotif.content}`)
-            .setFooter(`Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`)
+            .setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`})
             .setURL(process.env.PRONOTE_URL)
             .setColor("#70C7A4");
         if (infoNotif.author) embed.setAuthor(infoNotif.author, "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL);
 
         if (infoNotif.files.length >= 1) {
-            const filesText = Util.splitMessage(infoNotif.files.map((file) => {
+            const filesText = splitMessage(infoNotif.files.map((file) => {
                 if (/^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/g.test(file.name)) file.url = file.name;
                 return `[${file.name}](${file.url})`;
             }).join("\n"), {
                 maxLength: 1024
             });
 
-            embed.addField("Pièces jointes", filesText.shift(), true);
+            embed.addFields([{name: "Pièces jointes", value: filesText.shift(), inline: true}]);
             if (filesText.length) filesText.forEach(str => {
-                embed.addField("\u200b", str, true);
+                embed.addFields({name: "\u200b", value: str, inline: true});
             });
         }
 
-        channel.send({embeds: [embed]}).then(e => {
-            e.react("✅").then(() => {}).catch(console.error);
-        });
+        channel.send({embeds: [embed]}).then(() => {});
     };
 };

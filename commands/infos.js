@@ -8,13 +8,13 @@ function getFetchDate(session){
 
     return { from, to };
 }
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
 
 module.exports = {
     data: {
         name: scriptName,
-        description: "Vous fournis les informations sur 'élève",
+        description: "Vous fournis les informations sur l'élève",
         options: [],
     },
     execute: async interaction => {
@@ -36,13 +36,13 @@ module.exports = {
         const count = marks.subjects.filter(e => e !== "Abs").length;
         const moyenne = Math.floor(marks.subjects.map((value) => value.averages.student).reduce((a, b) => a + b) / count *100) / 100;
 
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setColor("#70C7A4")
             .setAuthor(interaction.user.username, interaction.user.displayAvatarURL({dynamic: true}))
             .setThumbnail(session.user.avatar)
             .setTitle(name+", "+classe)
             .setDescription("Cours aujourd'hui/Année : "+timetable.length+" | "+alltimetable.length+"\nControles : "+evaluations.length+"\nAbsences/Retards : "+nombreAbsences+"/"+nombreRetards+"\nDevoirs : "+allhomeworks.length+"\nMoyenne : "+moyenne)
-            .setFooter("Bot par Merlode#8128");
+            .setFooter({text: "Bot par Merlode#8128"});
 
         return await interaction.editReply({
             embeds: [embed]

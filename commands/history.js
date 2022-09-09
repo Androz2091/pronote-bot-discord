@@ -1,6 +1,6 @@
-const cache = require("../cache.json");
+const cache = require("../cache_1G1.json");
 const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 
 module.exports = {
     data: {
@@ -8,7 +8,7 @@ module.exports = {
         description: "Vous donne l'historique des moyennes sur 25 périodes",
         options: [
             {
-                type: "STRING",
+                type: ApplicationCommandOptionType.String,
                 name: "matière",
                 description: "Sélectionne l'historique d'une matière spécifique",
                 required: false,
@@ -17,7 +17,7 @@ module.exports = {
                 })
             },
             {
-                type: "STRING",
+                type: ApplicationCommandOptionType.String,
                 name: "moyenne",
                 description: "Sélectionne l'historique d'une moyenne spécifique",
                 required: false,
@@ -27,7 +27,7 @@ module.exports = {
                 ]
             },
             {
-                type: "INTEGER",
+                type: ApplicationCommandOptionType.Integer,
                 name: "nombre",
                 description: "Donne le nombre de valeur à afficher",
                 required: false,
@@ -52,10 +52,10 @@ module.exports = {
             data = interaction.client.cache.marks.averages.history;
         }
 
-        const embed = new MessageEmbed()
+        const embed = new EmbedBuilder()
             .setColor("#70C7A4")
             .setTitle(`Historique des moyennes ${subject ? `de \`${subject.toUpperCase()}\` ` : ""}pour ${averageType === "student" ? "l'élève": "la classe"}`)
-            .setFooter("Bot par Merlode#8128");
+            .setFooter({text: "Bot par Merlode#8128"});
 
         data.splice(number);
         data.forEach((average, index) => {
@@ -69,10 +69,10 @@ module.exports = {
                 editStr = `\n*Modification: ${edit > 0 ? "+"+edit : ""}*`;
             }
 
-            embed.addField(
-                day  +"/"+ month+"/"+ timestamp.getFullYear(),
-                `**Moyenne: ${average[averageType]}**` + editStr
-            );
+            embed.addFields([{
+                name: day  +"/" + month + "/" + timestamp.getFullYear(),
+                value: `**Moyenne: ${average[averageType]}**` + editStr
+            }]);
         });
         return interaction.editReply({embeds: [embed]});
     },

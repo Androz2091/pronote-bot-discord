@@ -42,6 +42,10 @@ Ce bot *incroyable* peut vous permettre de réaliser plusieurs actions et d'avoi
     * L'auteur de la communication
     * Le titre de la communication
     * Le contenu de la communication
+- Outil de calcul de la note du bac automatique
+    * Calcule les notes obtenues au contrôle continu en première et en terminale
+    * Calcule la note obtenue aux épreuves données
+    * Applique les coefficients
 
 ### Commandes
 - `/cours` pour avoir l'emploie du temps du jour
@@ -50,6 +54,8 @@ Ce bot *incroyable* peut vous permettre de réaliser plusieurs actions et d'avoi
 - `/info` pour avoir les informations sur le compte
 - `/history` vous donne la liste des modification d'une moyenne (classe/élève pour une matière ou non)
 - `/graph` vous donne un graphique des modification d'une moyenne (classe/élève pour une matière ou non)
+- `/help` pour avoir la liste des commandes
+- `/points-bac` calcule automatiquement le nombre de points obtenu pour le bac
 
 ## Installation
 
@@ -75,6 +81,7 @@ Node.js est requis pour le bon fonctionnement du bot. Il faut donc aller le [té
 ### Remplir son `.env`
 ##### `PRONOTE_URL`
 Indiquez ici votre URL sur lequel vous accédez à pronote, sans le `.eleve.html` et sa suite. Il faudra s'arrêter à `/pronote/`
+> Exemple: `https://0050006e.index-education.net/pronote/`
 ##### `PRONOTE_CAS`
 **Uniquement dans le cas où vous ne pouvez PAS vous connecter directement par Pronote, mais devez passer par une interface régionale spéciale**
 
@@ -131,10 +138,12 @@ Sinon, l'API propose de se connecter à Pronote avec des comptes des académies 
 ##### `PRONOTE_USERNAME` et `PRONOTE_PASSWORD`
 Indiquez ici votre identifiant (`USERNAME`) et votre mot de passe (`PASSWORD`) pour que le bot puisse se connecter à pronote via votre compte
 
-⚠ Vous identifiants doivent restés **PRIVÉES** et personne ne doit y avoir accès. Faite attention à ne donner aucun de vos identifiants, ne pas donner directement le code. Vous pourriez par oubli donner vos identifants. Faites bien attention de donner le code uniquement via ce repository
+⚠ Vous identifiants doivent restés **PRIVÉES** et **personne** ne doit y avoir **accès**. Faite attention à ne donner **aucun** de vos identifiants, ne pas donner **directement** le code. Vous pourriez par oubli donner vos **identifants**. Faites bien attention de donner le code uniquement via ce repository
 
 ##### `TOKEN`
 Indiquez ici le token de votre bot pour qu'il puisse se connecter à Discord. Allez dans le [portail développeur](https://discord.com/developers/applications/) et récupérez ici le token de votre bot
+
+[![Miniature de la création du bot](http://img.youtube.com/vi/Y8RcqgmYVU8/0.jpg)](http://www.youtube.com/watch?v=Y8RcqgmYVU8 "Miniature de la création du bot")
 
 ##### `CHANNEL`
 Complétez toutes les variables finnissant par `CHANNEL` par les identifiants des salons où seront envoyés les notifications:
@@ -143,9 +152,14 @@ Complétez toutes les variables finnissant par `CHANNEL` par les identifiants de
 * `AWAY_CHANNEL_ID` Le salon où seront envoyés les cours annulés
 * `INFOS_CHANNEL_ID` Le salon pour les nouvelles informations (Communication & sondages)
 
+
+##### `AUTO_UPDATE`
+Vous devez indiquer ici si vous voulez que le bot se mette à jour automatiquement ou non. Si vous voulez que le bot se mette à jour automatiquement, mettez `true` sinon mettez `false`.
+Une confirmation sera demandée si jamais le bot détecte une version plus récente de celle qu'il possède
+
 ## Crédit
 
-Le bot est à l'origine créé par [@Androz2091](https://github.com/Androz2091/pronote-bot-discord). Je lui ai apporté des modifications pour l'améliorer et le rendre plus utile que ce qu'il n'était. 
+Le bot est à l'origine créé par [@Androz2091](https://github.com/Androz2091/pronote-bot-discord). Je lui ai apporté une grande part de ma touche personnelle pour l'améliorer et le rendre plus utile que ce qu'il n'était. 
 
 
 ## Retours
@@ -153,5 +167,7 @@ Le bot est à l'origine créé par [@Androz2091](https://github.com/Androz2091/p
 En cas de bug ou de problème d'installation vous pouvez ouvrir une [**`Issue`**](https://github.com/Merlode11/pronote-bot-discord/issues/new?assignees=Merlode11&labels=bug%2C+help+wanted&template=signaler-un-bug.md&title=%5BBUG%5D) ou alors contactez moi sur Discord: `Merlode#8128`
 ### Suggestions
 Si vous avez la moindre suggestion, proposez là dans les [**`Issue`**](https://github.com/Merlode11/pronote-bot-discord/issues/new?assignees=Merlode11&labels=enhancement&template=proposer-une-fonctionnalit-.md&title=%5BSUGGESTION%5D), elles sont là pour ça
+
 ### Merci
 Merci à vous de me supporter dans cette aventure que je commence tout juste et si vous pouvez laisser une petite star ça ferait vraiment plaisir
+N'hésitez pas à partager ce bot à tous ceux qui en ont besoin !
