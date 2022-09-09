@@ -1,4 +1,17 @@
-const cache = require("../cache_1G1.json");
+const { readdirSync, lstatSync } = require("fs");
+
+const orderReccentFiles = (dir) =>
+    readdirSync(dir)
+        .filter(f => lstatSync(f).isFile() && f.endsWith(".json") && f.startsWith("cache"))
+        .map(file => ({ file, mtime: lstatSync(file).mtime }))
+        .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+
+const getMostRecentFile = (dir) => {
+    const files = orderReccentFiles(dir);
+    return files.length ? files[0] : undefined;
+};
+let cacheFile = getMostRecentFile("./");
+const cache = require("../"+cacheFile.file);
 const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
 const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 

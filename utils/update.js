@@ -2,13 +2,29 @@ const fetch = require("node-fetch");
 const jszip  = require("jszip");
 const fs = require("fs");
 
+function cmpVersions (a, b) {
+    let i, diff;
+    let regExStrip0 = /(\.0+)+$/;
+    let segmentsA = a.replace(regExStrip0, "").split(".");
+    let segmentsB = b.replace(regExStrip0, "").split(".");
+    let l = Math.min(segmentsA.length, segmentsB.length);
+
+    for (i = 0; i < l; i++) {
+        diff = parseInt(segmentsA[i], 10) - parseInt(segmentsB[i], 10);
+        if (diff) {
+            return diff;
+        }
+    }
+    return segmentsA.length - segmentsB.length;
+}
+
 module.exports = {
     checkUpdate: async () => {
         console.log("Checking for updates...");
         return new Promise((resolve, reject) => {
             fetch("https://api.github.com/repos/Merlode11/pronote-bot-discord/releases/latest").then(res => res.json()).then(data => {
                 console.log("Current version: " + require("../package.json").version);
-                resolve(require("../package.json").version < data.tag_name);
+                resolve(cmpVersions(require("../package.json").version, data.tag_name) > 0);
             }).catch(err => {
                 console.error(err);
                 reject(err);
