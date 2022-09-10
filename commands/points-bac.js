@@ -289,6 +289,11 @@ module.exports = {
                 notes[classe].subjectAverage[subId] = average * 2;
                 total += notes[classe].subjectAverage[subId];
                 subName = chossedSub.map(s => s.name).join(", ");
+            } else if (subId === "specialite") {
+                founds[classe] = founds[classe].concat(i.values);
+                notes[classe].subjectAverage[subId] = average * 8;
+                total += notes[classe].subjectAverage[subId];
+                subName = chossedSub.map(s => s.name).join(", ");
             } else {
                 founds[classe] = founds[classe].concat(i.values);
                 const subject = notes[classe].subjects.find(s => s.name === i.values[0]);
