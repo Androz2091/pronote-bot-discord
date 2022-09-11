@@ -1,12 +1,13 @@
 require("dotenv").config();
 const fs = require("fs");
 const pronote = require("pronote-api-again");
-const { Client, EmbedBuilder, IntentsBitField, Colors, ActivityType } = require("discord.js");
+const { Client, EmbedBuilder, IntentsBitField, Colors, ActivityType, ButtonBuilder, ButtonStyle, ActionRowBuilder} = require("discord.js");
 const msgbox = require("native-msg-box");
 const { checkUpdate, updateFiles } = require("./utils/update");
 
 if (process.env.AUTO_UPDATE === "true") {
     checkUpdate().then(result => {
+        console.log(result);
         if (result) {
             msgbox.prompt({
                 icon: msgbox.Icon.STOP,
@@ -16,10 +17,14 @@ if (process.env.AUTO_UPDATE === "true") {
             }, async (err, result) => {
                 if (err) {return console.error(err);}
                 if (result === msgbox.Result.YES) {
-                    updateFiles().then(() => {
+                    console.log("Updating...");
+                    updateFiles().then(async () => {
                         // restart the app
-                        require("child_process").exec("node index.js");
+                        await require("child_process").execSync("npm install");
+                        require("child_process").execSync("node index.js");
                         process.exit(0);
+                    }).catch(err => {
+                        console.error(err);
                     });
                 }
             });
@@ -32,6 +37,14 @@ const client = new Client({ intents: Object.keys(IntentsBitField.Flags).map(key 
 
 require("./utils/db")(client);
 require("./utils/notifications")(client);
+
+const bugButton = new ButtonBuilder()
+    .setStyle(ButtonStyle.Link)
+    .setLabel("Signaler un bug")
+    .setURL("https://github.com/Merlode11/pronote-bot-discord/issues/new?assignees=Merlode11&labels=bug%2C+help+wanted&template=signaler-un-bug.md&title=%5BBUG%5D")
+    .setEmoji("🐛");
+
+client.bugActionRow = new ActionRowBuilder().addComponents(bugButton);
 
 client.session = null;
 
@@ -120,18 +133,21 @@ pronote.login(process.env.PRONOTE_URL, process.env.PRONOTE_USERNAME, process.env
                 if (interaction.replied) await interaction.followUp(
                     {
                         content: "⚠ | Il y a eu une erreur lors de l'exécution de la commande!",
-                        embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(errorString.toString())]
+                        embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(errorString.toString())],
+                        components: [client.bugActionRow],
                     }
                 );
                 else if (interaction.deferred) await interaction.editReply(
                     {
                         content: "⚠ | Il y a eu une erreur lors de l'exécution de la commande!",
-                        embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(errorString.toString())]
+                        embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(errorString.toString())],
+                        components: [client.bugActionRow],
                     }
                 );
                 else await interaction.reply({
                     content: "⚠ | Il y a eu une erreur lors de l'exécution de la commande!",
-                    embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(errorString.toString())]
+                    embeds: [new EmbedBuilder().setColor(Colors.Red).setDescription(errorString.toString())],
+                    components: [client.bugActionRow],
                 }).catch(console.error);
             }
 
