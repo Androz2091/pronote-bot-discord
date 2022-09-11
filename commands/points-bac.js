@@ -196,7 +196,7 @@ module.exports = {
                 }
             } else if (subject.startsWith("fr_")) {
                 notes["1"].subjectAverage[subject] = notes["1"].subjectAverage[subject] * 5;
-                total += notes["1"].subjectAverage[subject] * 5;
+                total += notes["1"].subjectAverage[subject];
             } else if (subject.startsWith("opt")) {
                 errors.push("1|" + subject);
             }
@@ -231,6 +231,8 @@ module.exports = {
             let specialite1 = specialites1.filter(s => !specialitesT.includes(s)).shift();
             notes["1"].subjectAverage["specialite"] = notes["1"].subjects.find(s => subjects[specialite1].regex.test(s)) * subjects[specialite1].coef["1"];
             total += notes["1"].subjectAverage["specialite"];
+            founds["1"].push(specialite1);
+            founds["1"] = founds["1"].concat(specialitesT.map(s => s.name));
         } else {
             errors.push("1|specialite");
         }
@@ -283,7 +285,6 @@ module.exports = {
             const average = chossedSub.reduce((a, b) => a + b.average, 0) / chossedSub.length;
             if (i.values.includes("0")) {
                 notes[classe].subjectAverage[subId] = 0;
-                total += 0;
             } else if (subId.startsWith("opt")) {
                 founds[classe] = founds[classe].concat(i.values);
                 notes[classe].subjectAverage[subId] = average * 2;
