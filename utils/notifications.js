@@ -111,9 +111,9 @@ module.exports = client => {
             averageMsg.embeds[0].title.toUpperCase() === "moyenne générale".toUpperCase()
         ) await averageMsg.delete();
 
-        const studentEdit = Math.round((client.cache.marks.averages.student-cachedMarks.averages.student)*100)/100;
-        const classEdit = Math.round((client.cache.marks.averages.studentClass-cachedMarks.averages.studentClass)*100)/100;
-
+        const studentEdit = Math.round(((client.cache.marks?.averages?.student ?? 0) - (cachedMarks.averages?.student ?? 0))*100)/100;
+        const classEdit = Math.round(((client.cache.marks?.averages?.studentClass ?? 0) - (cachedMarks.averages?.studentClass ?? 0))*100)/100;
+        
         const generalEmbed = new EmbedBuilder()
             .setTitle("moyenne générale".toUpperCase())
             .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks.averages.student}/20\n**Moyenne générale de la classe :** ${client.cache.marks.averages.studentClass}/20`)
