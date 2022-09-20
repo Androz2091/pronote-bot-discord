@@ -116,10 +116,10 @@ module.exports = client => {
         
         const generalEmbed = new EmbedBuilder()
             .setTitle("moyenne générale".toUpperCase())
-            .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks.averages.student}/20\n**Moyenne générale de la classe :** ${client.cache.marks.averages.studentClass}/20`)
+            .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks?.averages?.student ?? 0}/20\n**Moyenne générale de la classe :** ${client.cache.marks?.averages?.studentClass ?? 0}/20`)
             .addFields([{
                 name: "__Moyennes précédentes__",
-                value: `**Élève :** ${cachedMarks.averages.student}/20\n**Classe :** ${cachedMarks.averages.studentClass}/20`
+                value: `**Élève :** ${cachedMarks?.averages?.student ?? 0}/20\n**Classe :** ${cachedMarks?.averages?.studentClass ?? 0}/20`
             }, {
                 name: "Modification",
                 value: `**Élève :** ${studentEdit > 0 ? "+"+studentEdit : studentEdit}\n**Classe :** ${classEdit > 0 ? "+"+classEdit : classEdit}`
