@@ -1,6 +1,6 @@
 require("dotenv").config();
 const fs = require("fs");
-const pronote = require("pronote-api-again");
+const pronote = require("pronote-api-maintained");
 const { Client, EmbedBuilder, IntentsBitField, Colors, ActivityType, ButtonBuilder, ButtonStyle, ActionRowBuilder} = require("discord.js");
 const msgbox = require("native-msg-box");
 const { checkUpdate, updateFiles } = require("./utils/update");
@@ -17,7 +17,6 @@ if (process.env.AUTO_UPDATE === "true") {
             }, async (err, result) => {
                 if (err) {return console.error(err);}
                 if (result === msgbox.Result.YES) {
-                    console.log("Updating...");
                     updateFiles().then(async () => {
                         // restart the app
                         await require("child_process").execSync("npm install");
@@ -94,7 +93,13 @@ pronote.login(process.env.PRONOTE_URL, process.env.PRONOTE_USERNAME, process.env
             const date = new Date();
 
             delete require.cache[require.resolve("./utils/pronoteSynchronization")];
-            await require("./utils/pronoteSynchronization")(client).catch((e) => console.log(`${date} ${time} | ${e.message}`));
+            await require("./utils/pronoteSynchronization")(client).catch((e) => {
+                if (e.message === "Session has expired due to inactivity or error") {
+                    client.session.logout();
+                    client.session = null;
+                }
+                console.log(`${date} ${time} | ${e.message}`);
+            });
             timeLeft = 10;
         }, 10 * 60 * 1000);
 

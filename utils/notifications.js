@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require("discord.js");
+const { NodeHtmlMarkdown } = require("node-html-markdown");
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array);
@@ -21,8 +22,6 @@ function verifyString(
 }
 
 function splitMessage(text, { maxLength = 2000, char = "\n", prepend = "", append = "" } = {}) {
-
-
     text = verifyString(text);
     if (text.length <= maxLength) return [text];
     let splitText = [text];
@@ -113,7 +112,7 @@ module.exports = client => {
 
         const studentEdit = Math.round(((client.cache.marks?.averages?.student ?? 0) - (cachedMarks?.averages?.student ?? 0))*100)/100;
         const classEdit = Math.round(((client.cache.marks?.averages?.studentClass ?? 0) - (cachedMarks?.averages?.studentClass ?? 0))*100)/100;
-        
+
         const generalEmbed = new EmbedBuilder()
             .setTitle("moyenne générale".toUpperCase())
             .setDescription(`**Moyenne générale de l'élève :** ${client.cache.marks?.averages?.student ?? 0}/20\n**Moyenne générale de la classe :** ${client.cache.marks?.averages?.studentClass ?? 0}/20`)
@@ -137,6 +136,8 @@ module.exports = client => {
         const channel = client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID);
         if (!channel) return new ReferenceError("HOMEWORKS_CHANNEL_ID is not defined");
 
+        const content = NodeHtmlMarkdown.translate(homework.htmlDescription);
+
         const embed = new EmbedBuilder()
             .setAuthor({
                 name: "Pronote",
@@ -144,7 +145,7 @@ module.exports = client => {
                 url: process.env.PRONOTE_URL,
             })
             .setTitle(homework.subject.toUpperCase())
-            .setDescription(homework.description)
+            .setDescription(content)
             .setFooter({text: `Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`})
             .setURL(homework.trelloURL ? homework.trelloURL : process.env.PRONOTE_URL)
             .setColor(homework.color ?? "#70C7A4");
@@ -196,13 +197,19 @@ module.exports = client => {
         const channel = client.channels.cache.get(process.env.INFOS_CHANNEL_ID);
         if (!channel) return new ReferenceError("INFOS_CHANNEL_ID is not defined");
 
+        const content = NodeHtmlMarkdown.translate(infoNotif.htmlContent);
+
         const embed = new EmbedBuilder()
-            .setTitle(infoNotif.title ?? "Pas de titre")
-            .setDescription(`${infoNotif.content}`)
+            .setTitle(infoNotif.title ?? "Sans titre titre")
+            .setDescription(content)
             .setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`})
             .setURL(process.env.PRONOTE_URL)
             .setColor("#70C7A4");
-        if (infoNotif.author) embed.setAuthor(infoNotif.author, "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png", process.env.PRONOTE_URL);
+        if (infoNotif.author) embed.setAuthor({
+            name: infoNotif.author,
+            iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+            url: process.env.PRONOTE_URL
+        });
 
         if (infoNotif.files.length >= 1) {
             const filesText = splitMessage(infoNotif.files.map((file) => {

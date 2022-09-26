@@ -1,5 +1,5 @@
 require("dotenv").config();
-const pronote = require("pronote-api-again");
+const pronote = require("pronote-api-maintained");
 
 /**
  * Synchronise le client.cache avec Pronote et se charge d'appeler les fonctions qui envoient les notifications
