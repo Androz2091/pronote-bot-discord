@@ -1,15 +1,14 @@
 const { EmbedBuilder } = require("discord.js");
-const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
+
 
 module.exports = {
     data: {
-        name: scriptName,
         description: "Ping le bot",
         options: [],
     },
-    execute: async interaction => {
+    execute: async (client, interaction) => {
         const msg = await interaction.fetchReply();
-        const client = interaction.client;
+        
 
         const embed = new EmbedBuilder()
             .setColor("#70C7A4")
@@ -21,7 +20,7 @@ module.exports = {
                 },
                 {
                     name: "Latance de l'API",
-                    value: `**${Math.round(interaction.client.ws.ping)}**ms`,
+                    value: `**${Math.round(client.ws.ping)}**ms`,
                 },
                 {
                     name: "Mémoire",
@@ -35,7 +34,9 @@ module.exports = {
                 },
                 {
                     name: "Version",
-                    value: `\`discord.js : ${require("../package.json").dependencies["discord.js"]}\`\n\`node.js : ${process.version}\``,
+                    value: `\`discord.js : ${require("../package.json").dependencies["discord.js"]}\``+
+                        `\n\`node.js : ${process.version}\`` +
+                        `\n\`pronote-api-maintained : ${require("../package.json").dependencies["pronote-api-maintained"]}\``,
                     inline: true,
                 },
                 {

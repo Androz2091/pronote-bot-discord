@@ -1,5 +1,5 @@
 const { EmbedBuilder, SelectMenuBuilder, ActionRowBuilder, ApplicationCommandOptionType } = require("discord.js");
-const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
+
 const fs = require("fs");
 
 delete require.cache[require.resolve("../utils/subjects")];
@@ -26,7 +26,6 @@ const nameGenerator = (subject) => {
 
 module.exports = {
     data: {
-        name: scriptName,
         description: "Voir le nombre de points que vous avec actuellement pour le BAC",
         options: [
             {
@@ -87,8 +86,8 @@ module.exports = {
             }
         ],
     },
-    execute: async interaction => {
-        const session = interaction.client.session;
+    execute: async (client, interaction) => {
+        const session = client.session;
         const classe = session.user.studentClass.name;
 
         if (!classe.startsWith("1") && !classe.toUpperCase().startsWith("T")) {
@@ -143,22 +142,22 @@ module.exports = {
         });
 
         if (interaction.options.getInteger("fr-oral")) {
-            notes["1"].subjectAverage["fr_oral"] = interaction.options.getInteger("fr-oral");
+            notes["1"].subjectAverage["fr_oral"] = interaction.options.getInteger("fr-oral") ?? 0;
         }
         if (interaction.options.getInteger("fr-ecrit")) {
-            notes["1"].subjectAverage["fr_ecrit"] = interaction.options.getInteger("fr-ecrit");
+            notes["1"].subjectAverage["fr_ecrit"] = interaction.options.getInteger("fr-ecrit") ?? 0;
         }
         if (interaction.options.getInteger("philosophie")) {
-            notes["T"].subjectAverage["philosophie"] = interaction.options.getInteger("philosophie");
+            notes["T"].subjectAverage["philosophie"] = interaction.options.getInteger("philosophie") ?? 0;
         }
         if (interaction.options.getInteger("grand-oral")) {
-            notes["T"].subjectAverage["grand_oral"] = interaction.options.getInteger("grand-oral");
+            notes["T"].subjectAverage["grand_oral"] = interaction.options.getInteger("grand-oral") ?? 0;
         }
         if (interaction.options.getString("specialite1")) {
-            notes["T"].subjectAverage["specialite1"] = interaction.options.getString("specialite1").split(",").map(note => parseInt(note)).reduce((a, b) => a + b, 0) / interaction.options.getString("specialite1").split(",").length;
+            notes["T"].subjectAverage["specialite1"] = interaction.options.getString("specialite1") ? interaction.options.getString("specialite1").split(",").map(note => parseInt(note)).reduce((a, b) => a + b, 0) / (interaction.options.getString("specialite1") ?? "").split(",").length : 0;
         }
         if (interaction.options.getString("specialite2")) {
-            notes["T"].subjectAverage["specialite2"] = interaction.options.getString("specialite2").split(",").map(note => parseInt(note)).reduce((a, b) => a + b, 0) / interaction.options.getString("specialite2").split(",").length;
+            notes["T"].subjectAverage["specialite2"] = interaction.options.getString("specialite1") ? interaction.options.getString("specialite2").split(",").map(note => parseInt(note)).reduce((a, b) => a + b, 0) /(interaction.options.getString("specialite2") ?? "").split(",").length : 0;
         }
         if (interaction.options.getBoolean("sauver")) {
             const data1 = require("../" + caches.find(c => c.split("_")[1].startsWith("1")));
@@ -221,6 +220,8 @@ module.exports = {
                 } else if (notes["T"].subjects.length > 0) {
                     errors.push("T|" + subject);
                 }
+            } else if (subject.startsWith("opt")) {
+                errors.push("T|" + subject);
             }
         });
 
@@ -229,7 +230,7 @@ module.exports = {
 
         if (specialitesT.length > 0 && specialites1.length > 0) {
             let specialite1 = specialites1.filter(s => !specialitesT.includes(s)).shift();
-            notes["1"].subjectAverage["specialite"] = notes["1"].subjects.find(s => subjects[specialite1].regex.test(s)) * subjects[specialite1].coef["1"];
+            notes["1"].subjectAverage["specialite"] = notes["1"].subjects.find(s => subjects[specialite1].regex.test(s.name)).average * subjects[specialite1].coef["1"];
             total += notes["1"].subjectAverage["specialite"];
             founds["1"].push(specialite1);
             founds["1"] = founds["1"].concat(specialitesT.map(s => s.name));
@@ -241,33 +242,35 @@ module.exports = {
         }
 
         if (errors.length && !interaction.options.getBoolean("skip")) {
+            let subjects = notes[errors[0].split("|")[0]].subjects.filter(s => !founds[errors[0].split("|")[0]].includes(s.name)).map(s => {
+                return {
+                    label: s.name,
+                    description: "Moyenne : " + s.average,
+                    value: s.name,
+                };
+            });
+
+            subjects.splice(24);
+
+            subjects.push({
+                label: "Sans notes | Aucune",
+                description: "Vous n'avez pas encore de notes pour cette matière, ou vous n'avez pas de matière correspondante.",
+                value: "0",
+            });
+
+
             const select = new SelectMenuBuilder()
                 .setCustomId("bac_" + errors[0].split("|")[1])
                 .setPlaceholder("Sélectionnez une matière")
-                .addOptions(notes[errors[0].split("|")[0]].subjects.filter(s => !founds[errors[0].split("|")[0]].includes(s.name)).map(s => {
-                    return {
-                        label: s.name,
-                        description: "Moyenne : " + s.average,
-                        value: s.name,
-                    };
-                }))
+                .addOptions(subjects)
                 .setMinValues(1)
-                .setMaxValues(3);
+                .setMaxValues(subjects.length >= 3 ? 3 : 1);
 
-            if (errors[0].split("|")[1].startsWith("opt")) {
-                select.addOptions([
-                    {
-                        label: "Aucune",
-                        description: "Vous n'avez pas choisi d'option",
-                        value: "0",
-                    }
-                ]);
-            }
 
             const row = new ActionRowBuilder()
                 .addComponents(select);
             await interaction.editReply({
-                content: "❌ | Il y a eu une erreur lors du calcul de la moyenne. Une matière n'a pas été trouvée, veuillez sélectionner la matière correspondant à **" + nameGenerator(errors[0].split("|")[1]) + "**",
+                content: "❌ | Il y a eu une erreur lors du calcul de la moyenne. Une matière n'a pas été trouvée, veuillez sélectionner la matière correspondant à **" + nameGenerator(errors[0].split("|")[1]) + "** (*"+(errors[0].split("|")[0] === "1" ? "Première" : "Terminale")+"*)",
                 components: [row],
             });
         }
@@ -275,15 +278,16 @@ module.exports = {
         const filter = i => {
             return i.customId.startsWith("bac_") && i.user.id === interaction.user.id;
         };
-        const componentCollector = interaction.channel.createMessageComponentCollector({ filter, idle: 20000, dispose: true });
-        if (!errors.length) componentCollector.stop();
+
+        const componentCollector = message.createMessageComponentCollector({ filter, idle: 20000, dispose: true });
+        if (!errors.length && !interaction.options.getBoolean("skip")) componentCollector.stop();
         componentCollector.on("collect", async i => {
             let subName = "Aucune";
-            const classe = errors[0].split("|")[0];
+            let classe = errors[0].split("|")[0];
             const subId = errors[0].split("|")[1];
             const chossedSub = notes[classe].subjects.filter(s => i.values.includes(s.name));
             const average = chossedSub.reduce((a, b) => a + b.average, 0) / chossedSub.length;
-            if (i.values.includes("0")) {
+            if (i.values.includes("0") || i.values.includes("null")) {
                 notes[classe].subjectAverage[subId] = 0;
             } else if (subId.startsWith("opt")) {
                 founds[classe] = founds[classe].concat(i.values);
@@ -306,33 +310,35 @@ module.exports = {
             }
             errors.shift();
             if (errors.length) {
+                classe = errors[0].split("|")[0];
+                const subjects = notes[classe].subjects.filter(s => !founds[classe].includes(s.name)).map(s => {
+                    return {
+                        label: s.name,
+                        description: "Moyenne : " + s.average,
+                        value: s.name,
+                    };
+                });
+
+                subjects.splice(24);
+
+                subjects.push({
+                    label: "Sans notes | Aucune",
+                    description: "Vous n'avez pas encore de notes pour cette matière ou vous n'avez pas de matière correspondante.",
+                    value: "0",
+                });
+
                 const select = new SelectMenuBuilder()
                     .setCustomId("bac_" + subId)
                     .setPlaceholder("Sélectionnez une matière")
-                    .addOptions(notes[classe].subjects.filter(s => !founds[classe].includes(s.name)).map(s => {
-                        return {
-                            label: s.name,
-                            description: "Moyenne : " + s.average,
-                            value: s.name,
-                        };
-                    }))
+                    .addOptions(subjects)
                     .setMinValues(1)
-                    .setMaxValues(3);
+                    .setMaxValues(subjects.length >= 3 ? 3 : 1);
 
-                if (subId.startsWith("opt")) {
-                    select.addOptions([
-                        {
-                            label: "Aucune",
-                            description: "Vous n'avez pas choisi d'option",
-                            value: "0",
-                        }
-                    ]);
-                }
 
                 const row = new ActionRowBuilder()
                     .addComponents(select);
                 await message.edit({
-                    content: "❌ | Il y a eu une erreur lors du calcul de la moyenne. Une matière n'a pas été trouvée, veuillez sélectionner la matière correspondant à **" + nameGenerator(errors[0].split("|")[1]) + "**",
+                    content: "❌ | Il y a eu une erreur lors du calcul de la moyenne. Une matière n'a pas été trouvée, veuillez sélectionner la matière correspondant à **" + nameGenerator(errors[0].split("|")[1]) + "** (*"+(classe === "1" ? "Première" : "Terminale")+"*)",
                     components: [row],
                 });
             } else {
@@ -344,7 +350,7 @@ module.exports = {
             });
         });
         componentCollector.on("end", async () => {
-            if (errors.length) {
+            if (errors.length && !interaction.options.getBoolean("skip")) {
                 await interaction.editReply({
                     content: "❌ | Vous n'avez pas répondu à temps",
                     components: [],

@@ -6,7 +6,6 @@ yarn.lock
 .env
 cache*.json
 
-
-# IDEs
+# IDE files
 .idea
 .vscode

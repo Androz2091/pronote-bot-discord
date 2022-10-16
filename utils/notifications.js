@@ -1,60 +1,16 @@
 const { EmbedBuilder } = require("discord.js");
 const { NodeHtmlMarkdown } = require("node-html-markdown");
-async function asyncForEach(array, callback) {
-    for (let index = 0; index < array.length; index++) {
-        await callback(array[index], index, array);
-    }
-}
+
 const moment = require("moment");
 moment.locale("fr");
 
 let averageMsg = null;
 
-function verifyString(
-    data,
-    error = Error,
-    errorMessage = `Expected a string, got ${data} instead.`,
-    allowEmpty = true,
-) {
-    if (typeof data !== "string") throw new error(errorMessage);
-    if (!allowEmpty && data.length === 0) throw new error(errorMessage);
-    return data;
-}
-
-function splitMessage(text, { maxLength = 2000, char = "\n", prepend = "", append = "" } = {}) {
-    text = verifyString(text);
-    if (text.length <= maxLength) return [text];
-    let splitText = [text];
-    if (Array.isArray(char)) {
-        while (char.length > 0 && splitText.some(elem => elem.length > maxLength)) {
-            const currentChar = char.shift();
-            if (currentChar instanceof RegExp) {
-                splitText = splitText.flatMap(chunk => chunk.match(currentChar));
-            } else {
-                splitText = splitText.flatMap(chunk => chunk.split(currentChar));
-            }
-        }
-    } else {
-        splitText = text.split(char);
-    }
-    if (splitText.some(elem => elem.length > maxLength)) throw new RangeError("SPLIT_MAX_LEN");
-    const messages = [];
-    let msg = "";
-    for (const chunk of splitText) {
-        if (msg && (msg + char + chunk + append).length > maxLength) {
-            messages.push(msg + append);
-            msg = prepend;
-        }
-        msg += (msg && msg !== prepend ? char : "") + chunk;
-    }
-    return messages.concat(msg).filter(m => m);
-}
-
 module.exports = client => {
     client.notif = {};
 
     /**
-     * Envoi un notification de note sur Discord
+     * Envoi une notification de note sur Discord
      * @param {Array} marksNotifications La matière de la note
      * @param {Array} cachedMarks La note à envoyer
      */
@@ -69,29 +25,33 @@ module.exports = client => {
             }
         }
 
-        await asyncForEach(marksNotifications, markObj => {
+        await client.functions.asyncForEach(marksNotifications, async markObj => {
             const mark = markObj.mark;
             const subject = markObj.subject;
 
-            const embed = new EmbedBuilder();
+            const embed = new EmbedBuilder()
+                .setAuthor({
+                    name: "Pronote",
+                    iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+                    url: process.env.PRONOTE_URL
+                });
             let better = "";
             if (mark.value === mark.max) {
                 better = "**__Tu as la meilleure note de la classe !__**\n";
                 embed.setThumbnail("https://i.imgur.com/RGs62tl.gif");
-            } else if (mark.value > mark.average) {
+            } else if (mark.value >= mark.average) {
                 better = "**__Tu as une note au dessus de la moyenne de la classe !__**\n";
                 embed.setThumbnail("https://i.imgur.com/3P5DfAZ.gif");
+            } else if (mark.value === mark.min) {
+                better = "**__Tu est le premier des derniers !__**\n";
+                embed.setThumbnail("https://i.imgur.com/5H5ZASz.gif");
+                embed.author.url = "https://youtu.be/dQw4w9WgXcQ";
             }
             let studentNote = `**Note de l'élève :** ${mark.value}/${mark.scale}`;
-            if (mark.scale !== 20) studentNote += ` *(${+(mark.value/mark.scale * 20).toFixed(2)}/20)*`;
+            if (mark.scale !== 20) studentNote += ` *(${+(mark.value / mark.scale * 20).toFixed(2)}/20)*`;
             const infos = better + studentNote + `\n**Moyenne de la classe :** ${mark.average}/${mark.scale}\n**Coefficient**: ${mark.coefficient}\n\n**Note la plus basse :** ${mark.min}/${mark.scale}\n**Note la plus haute :** ${mark.max}/${mark.scale}`;
             const description = mark.title ? `${mark.title}\n\n${infos}` : infos;
-            embed.setAuthor({
-                name: "Pronote",
-                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
-                url: process.env.PRONOTE_URL
-            })
-                .setTitle(subject.name.toUpperCase())
+            embed.setTitle(subject.name.toUpperCase())
                 .setDescription(description)
                 .addFields([{
                     name: "__Matière__",
@@ -102,7 +62,7 @@ module.exports = client => {
                 .setURL(process.env.PRONOTE_URL)
                 .setColor(subject.color ?? "#70C7A4");
 
-            channel.send({embeds:[embed]});
+            await channel.send({embeds: [embed]}).catch(console.error);
         });
         if (
             averageMsg &&
@@ -110,8 +70,8 @@ module.exports = client => {
             averageMsg.embeds[0].title.toUpperCase() === "moyenne générale".toUpperCase()
         ) await averageMsg.delete();
 
-        const studentEdit = Math.round(((client.cache.marks?.averages?.student ?? 0) - (cachedMarks?.averages?.student ?? 0))*100)/100;
-        const classEdit = Math.round(((client.cache.marks?.averages?.studentClass ?? 0) - (cachedMarks?.averages?.studentClass ?? 0))*100)/100;
+        const studentEdit = Math.round(((client.cache.marks?.averages?.student ?? 0) - (cachedMarks?.averages?.student ?? 0)) * 100) / 100;
+        const classEdit = Math.round(((client.cache.marks?.averages?.studentClass ?? 0) - (cachedMarks?.averages?.studentClass ?? 0)) * 100) / 100;
 
         const generalEmbed = new EmbedBuilder()
             .setTitle("moyenne générale".toUpperCase())
@@ -121,18 +81,18 @@ module.exports = client => {
                 value: `**Élève :** ${cachedMarks?.averages?.student ?? 0}/20\n**Classe :** ${cachedMarks?.averages?.studentClass ?? 0}/20`
             }, {
                 name: "Modification",
-                value: `**Élève :** ${studentEdit > 0 ? "+"+studentEdit : studentEdit}\n**Classe :** ${classEdit > 0 ? "+"+classEdit : classEdit}`
+                value: `**Élève :** ${studentEdit > 0 ? "+" + studentEdit : studentEdit}\n**Classe :** ${classEdit > 0 ? "+" + classEdit : classEdit}`
             }
             ])
             .setColor("#70C7A4");
-        averageMsg = await channel.send({embeds: [generalEmbed]});
+        averageMsg = await channel.send({embeds: [generalEmbed]}).catch(console.error);
     };
 
     /**
      * Envoi une notification de devoir sur Discord
      * @param {any} homework Le devoir à envoyer
      */
-    client.notif.homework = (homework) => {
+    client.notif.homework = async (homework) => {
         const channel = client.channels.cache.get(process.env.HOMEWORKS_CHANNEL_ID);
         if (!channel) return new ReferenceError("HOMEWORKS_CHANNEL_ID is not defined");
 
@@ -147,23 +107,46 @@ module.exports = client => {
             .setTitle(homework.subject.toUpperCase())
             .setDescription(content)
             .setFooter({text: `Devoir pour le ${moment(homework.for).format("dddd Do MMMM")}`})
-            .setURL(homework.trelloURL ? homework.trelloURL : process.env.PRONOTE_URL)
+            .setURL(process.env.PRONOTE_URL)
             .setColor(homework.color ?? "#70C7A4");
 
+        let attachments = [];
+        let files = [];
         if (homework.files.length >= 1) {
-            embed.addFields([{
-                name: "Pièces jointes",
-                value: homework.files.map((file) => {
-                    if (/^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/g.test(file.name)) file.url = file.name;
-                    return `[${file.name}](${file.url})`;
-                }).join("\n"),
-                inline: false
-            }]);
+            await client.functions.asyncForEach(homework.files, async file => {
+                const properties = await client.functions.getFileProperties(file);
+                if (properties.type === "file") attachments.push(properties.attachment);
+                files.push(properties);
+            });
         }
 
-        channel.send({embeds: [embed]}).then((e) => {
-            if (homework.done) e.react("✅").then(() => {});
-        });
+        channel.send({embeds: [embed], files: attachments}).then((e) => {
+            if (homework.done) e.react("✅").then(() => {
+            });
+            if (homework.files.length) {
+                let string = "";
+                files.forEach(file => {
+                    if (file.type === "file") {
+                        const name = client.functions.setFileName(file.name);
+                        string += `[${file.name}](${e.attachments.find(a => a.name === name)?.url})\n`;
+                    } else {
+                        string += `[${file.name ?? file.url}](${file.url})\n`;
+                    }
+                });
+
+                const strings = client.functions.splitMessage(string, {
+                    maxLength: 1024,
+                });
+
+                embed.addFields(strings.map((s, i) => {
+                    return {
+                        name: i === 0 ? "Fichiers joints" : "\u200b",
+                        value: s,
+                    };
+                }));
+                e.edit({embeds: [embed]});
+            }
+        }).catch(console.error);
     };
 
     /**
@@ -186,45 +169,134 @@ module.exports = client => {
             .setFooter({text: `Cours annulé de ${awayNotif.subject}`})
             .setColor("#70C7A4");
 
-        channel.send({embeds: [embed]}).then(() => {});
+        channel.send({embeds: [embed]}).then(() => {
+        }).catch(console.error);
     };
 
     /**
      * Envoi une notification d'information sur Discord
      * @param {any} infoNotif L'information à envoyer
      */
-    client.notif.info = (infoNotif) => {
+    client.notif.info = async (infoNotif) => {
         const channel = client.channels.cache.get(process.env.INFOS_CHANNEL_ID);
         if (!channel) return new ReferenceError("INFOS_CHANNEL_ID is not defined");
 
-        const content = NodeHtmlMarkdown.translate(infoNotif.htmlContent);
+        let content = NodeHtmlMarkdown.translate(infoNotif.htmlContent);
 
-        const embed = new EmbedBuilder()
-            .setTitle(infoNotif.title ?? "Sans titre titre")
-            .setDescription(content)
-            .setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`})
-            .setURL(process.env.PRONOTE_URL)
-            .setColor("#70C7A4");
-        if (infoNotif.author) embed.setAuthor({
-            name: infoNotif.author,
-            iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
-            url: process.env.PRONOTE_URL
-        });
-
-        if (infoNotif.files.length >= 1) {
-            const filesText = splitMessage(infoNotif.files.map((file) => {
-                if (/^(?:http(s)?:\/\/)[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/g.test(file.name)) file.url = file.name;
-                return `[${file.name}](${file.url})`;
-            }).join("\n"), {
-                maxLength: 1024
+        if (content.length > 4096) {
+            const splitted = client.functions.splitMessage(content, {
+                maxLength: 4096,
             });
 
-            embed.addFields([{name: "Pièces jointes", value: filesText.shift(), inline: true}]);
-            if (filesText.length) filesText.forEach(str => {
-                embed.addFields({name: "\u200b", value: str, inline: true});
+            const embed = new EmbedBuilder()
+                .setTitle(infoNotif.title ?? "Sans titre titre")
+                .setDescription(splitted.shift())
+                .setURL(process.env.PRONOTE_URL)
+                .setColor("#70C7A4");
+
+            if (infoNotif.author) embed.setAuthor({
+                name: infoNotif.author,
+                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+                url: process.env.PRONOTE_URL
             });
+            const embeds = [embed];
+            const attachments = [];
+            let files = [];
+            await client.functions.asyncForEach(splitted, async (s, index) => {
+                const embed = new EmbedBuilder()
+                    .setDescription(s)
+                    .setColor("#70C7A4");
+                if (index === splitted.length - 1) {
+                    embed.setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`});
+                }
+                embeds.push(embed);
+            });
+
+            if (infoNotif.files.length >= 1) {
+                await client.functions.asyncForEach(infoNotif.files, async (file) => {
+                    const properties = await client.functions.getFileProperties(file);
+                    if (properties.type === "file") {
+                        attachments.push(properties.attachment);
+                    }
+                    files.push(properties);
+                });
+            }
+            channel.send({embeds, files: attachments}).then(m => {
+                if (files.length) {
+                    let string = "";
+                    files.forEach(file => {
+                        if (file.type === "file") {
+                            const name = client.functions.transliterate(file.name).replace(/[^a-zA-Z0-9.\s_]/g, "").replace(/\s/g, "_");
+                            string += `[${file.name}](${m.attachments.find(a => a.name === name).url})\n`;
+                        } else {
+                            string += `[${file.name}](${file.url})\n`;
+                        }
+                    });
+                    let strings = client.functions.splitMessage(string, {
+                        maxLength: 1024,
+                    });
+
+                    embeds[embeds.length - 1].addFields(strings.map((s, index) => {
+                        return {
+                            name: index === 0 ? "Pièces jointes" : "\u200b",
+                            value: s,
+                            inline: false
+                        };
+                    }));
+                    m.edit({embeds});
+                }
+            }).catch(console.error);
+        } else {
+            const embed = new EmbedBuilder()
+                .setTitle(infoNotif.title ?? "Sans titre titre")
+                .setDescription(content)
+                .setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`})
+                .setURL(process.env.PRONOTE_URL)
+                .setColor("#70C7A4");
+            if (infoNotif.author) embed.setAuthor({
+                name: infoNotif.author,
+                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+                url: process.env.PRONOTE_URL
+            });
+
+            const attachments = [];
+            let files = [];
+            if (infoNotif.files.length >= 1) {
+                await client.functions.asyncForEach(infoNotif.files, async (file) => {
+                    const properties = await client.functions.getFileProperties(file);
+                    if (properties.type === "file") {
+                        attachments.push(properties.attachment);
+                    }
+                    files.push(properties);
+                });
+            }
+
+            channel.send({embeds: [embed], attachments}).then(m => {
+                if (files.length) {
+                    let string = "";
+                    files.forEach(file => {
+                        if (file.type === "file") {
+                            const name = client.functions.setFileName(file.name);
+                            const attachment = m.attachments.find(a => a.name === name);
+                            if (attachment) string += `[${file.name}](${attachment.url})\n`;
+                        } else {
+                            string += `[${file.name}](${file.url})\n`;
+                        }
+                    });
+                    let strings = client.functions.splitMessage(string, {
+                        maxLength: 1024,
+                    });
+
+                    embed.addFields(strings.map((s, index) => {
+                        return {
+                            name: index === 0 ? "Pièces jointes" : "\u200b",
+                            value: s,
+                            inline: false
+                        };
+                    }));
+                    m.edit({embeds: [embed]});
+                }
+            }).catch(console.error);
         }
-
-        channel.send({embeds: [embed]}).then(() => {});
     };
 };

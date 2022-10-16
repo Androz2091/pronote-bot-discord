@@ -1,10 +1,9 @@
 const Discord = require("discord.js");
-const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
+
 
 module.exports = {
     forDebug: true,
     data: {
-        name: scriptName,
         description: "Teste un code avec le bot",
         options: [
             {
@@ -15,8 +14,7 @@ module.exports = {
             }
         ],
     },
-    execute: async interaction => {
-        const client = interaction.client;
+    execute: async (client, interaction) => {
         // Owner verification
         client.application = await client.application.fetch();
         let owner = client.application.owner;
@@ -33,7 +31,7 @@ module.exports = {
                 .replace("client.token", "'[TOKEN HIDDEN]'");
 
         }
-        const result = await new Promise(async (resolve) => resolve(await eval(content)));
+        const result = new Promise(async (resolve) => resolve(await eval(content)));
         return result.then(async (output) => {
             if (typeof output !== "string") {
                 output = require("util").inspect(output, { depth: 0 });
@@ -42,8 +40,7 @@ module.exports = {
                 output = output.replace(client.token, "[TOKEN HIDDEN]");
             }
             return interaction.editReply({
-                embeds: [new Discord.EmbedBuilder().setColor("#36393F").setDescription("```js\n"+output+"\n```")],
-                components: [client.bugActionRow]
+                embeds: [new Discord.EmbedBuilder().setColor("#36393F").setDescription("```js\n"+output+"\n```")]
             });
         }).catch(async (err) => {
             err = err.toString();
@@ -51,8 +48,7 @@ module.exports = {
                 err = err.replace(client.token, "[TOKEN HIDDEN]");
             }
             return interaction.editReply({
-                embeds: [new Discord.EmbedBuilder().setColor("#36393F").setDescription("```js\n"+err+"\n```")],
-                components: [client.bugActionRow]
+                embeds: [new Discord.EmbedBuilder().setColor("#36393F").setDescription("```js\n"+err+"\n```")]
             });
         });
     }

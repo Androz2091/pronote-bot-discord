@@ -1,6 +1,6 @@
 {
   "name": "pronote-bot-discord",
-  "version": "4.1.0",
+  "version": "5.0.0",
   "description": "Un bot Discord pour envoyer des notifications Pronote dans un serveur Discord 📚",
   "main": "index.js",
   "repository": {
@@ -13,14 +13,14 @@
     "axios": "^0.21.4",
     "chart.js": "^3.6.0",
     "chartjs-node-canvas": "^4.1.4",
-    "discord.js": "^14.3.0",
+    "discord.js": "^14.5.0",
     "dotenv": "^8.2.0",
     "jszip": "^3.10.1",
     "moment": "^2.29.1",
     "native-msg-box": "^0.1.6",
     "node-fetch": "^2.6.1",
     "node-html-markdown": "^1.2.0",
-    "pronote-api-maintained": "^2.3.5"
+    "pronote-api-maintained": "^2.4.1"
   },
   "devDependencies": {
     "eslint": "^7.10.0"

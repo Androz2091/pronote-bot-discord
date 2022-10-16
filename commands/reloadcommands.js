@@ -1,15 +1,14 @@
 const fs = require("fs");
-const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
+
 
 module.exports = {
     forDebug: true,
     data: {
-        name: scriptName,
         description: "Modifie les arguments des slash commands",
         options: [],
     },
-    execute: async interaction => {
-        const client = interaction.client;
+    execute: async (client, interaction) => {
+        
         // Owner verification
         client.application = await client.application.fetch();
         let owner = client.application.owner;
@@ -24,6 +23,7 @@ module.exports = {
             delete require.cache[require.resolve(`../commands/${file}`)];
             const commandData = require(`../commands/${file}`);
             const command = commands.find(c => c.name === file.replace(".js", ""));
+            commandData.data.name = file.split(".")[0];
             if (!command) {
                 if (process.env.DEBUG_MODE === "true") {
                     client.application.commands.create(commandData.data).catch(console.error);

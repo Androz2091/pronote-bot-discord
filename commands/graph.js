@@ -1,19 +1,5 @@
-const { readdirSync, lstatSync } = require("fs");
 
-const orderReccentFiles = (dir) =>
-    readdirSync(dir)
-        .filter(f => lstatSync(f).isFile() && f.endsWith(".json") && f.startsWith("cache"))
-        .map(file => ({ file, mtime: lstatSync(file).mtime }))
-        .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
-
-const getMostRecentFile = (dir) => {
-    const files = orderReccentFiles(dir);
-    return files.length ? files[0] : undefined;
-};
-let cacheFile = getMostRecentFile("./");
-const cache = require("../"+cacheFile.file);
-const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
-const { MessageAttachment, EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
+const { AttachmentBuilder, EmbedBuilder, ApplicationCommandOptionType, Colors } = require("discord.js");
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
 const width = 800;
 const height = 300;
@@ -48,28 +34,28 @@ const generateCanvas = async (joinedXDays, lastXDays) => {
         },
         options
     });
-    return new MessageAttachment(image, "graph.png");
+    return new AttachmentBuilder(image, {
+        name: "graph.png",
+        description: "Graphique de l'évolution de la moyenne"
+    });
 };
 
 
 module.exports = {
     data: {
-        name: scriptName,
         description: "Génère un graphique de l'évolution des moyennes",
         options: [
             {
                 type: ApplicationCommandOptionType.String,
                 name: "matière",
-                description: "Sélectionne l'historique d'une matière spécifique",
+                description: "Sélectionnez l'historique d'une matière voulue",
                 required: false,
-                choices: cache.marks.subjects.map(mark => {
-                    return {name: mark.name.toUpperCase(), value: mark.name};
-                }).splice(25)
+                autocomplete: true,
             },
             {
                 type: ApplicationCommandOptionType.String,
                 name: "moyenne",
-                description: "Sélectionne l'historique d'une moyenne spécifique",
+                description: "Sélectionnez l'historique d'une moyenne spécifique",
                 required: false,
                 choices: [
                     {name: "Élève", value: "student"},
@@ -84,7 +70,7 @@ module.exports = {
             }
         ],
     },
-    execute: async interaction => {
+    execute: async (client, interaction) => {
         const subject = interaction.options.getString("matière", false);
         const averageType = interaction.options.getString("moyenne", false) ?? "student";
         let number = interaction.options.getInteger("nombre", false) ?? 25;
@@ -93,12 +79,19 @@ module.exports = {
         if (number > 25) number = 25;
         if (number === 0) number = 1;
         let data = [];
-
+        
         if (subject) {
-            data = interaction.client.cache.marks.subjects.find(s => s.name === subject).averagesHistory;
+            data = client.cache.marks.subjects.find(s => s.name === subject)?.averagesHistory;
         } else {
-            data = interaction.client.cache.marks.averages.history;
+            data = client.cache.marks.averages?.history;
         }
+        if (!data) return interaction.editReply({
+            embeds: [new EmbedBuilder()
+                .setTitle("Erreur")
+                .setDescription("Aucune donnée n'a été trouvée. Réessayez plus tard, une fois que vous aurez des notes")
+                .setColor(Colors.Red)
+            ]
+        });
         data.splice(number);
 
         const graph = await generateCanvas(data.map(o => o[averageType]), data.map(o => {

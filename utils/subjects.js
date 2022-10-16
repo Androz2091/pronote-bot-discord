@@ -135,7 +135,7 @@ module.exports = {
     },
     "spe_nsi": {
         name: "Spécialité de Sciences Numériques et Informatiques",
-        regex: /(spe\s?)?nsi(\s?spe)|num([ée]rique|\.)\ssc(ience|\.)\sinf((o(rmatique|\.)|\.)|\.)/i,
+        regex: /(spe\s?)?nsi(\s?spe)|num([ée]rique|\.)\s?sc(ience|\.)\s?inf((o(rm(atique|\.)|\.)|\.)|\.)/i,
         coef: {
             "1": 8,
             "T": 16,

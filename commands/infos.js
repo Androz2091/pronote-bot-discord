@@ -9,17 +9,16 @@ function getFetchDate(session){
     return { from, to };
 }
 const { EmbedBuilder } = require("discord.js");
-const scriptName = __filename.split(/[\\/]/).pop().replace(".js", "");
+
 
 module.exports = {
     data: {
-        name: scriptName,
         description: "Vous fournis les informations sur l'élève",
         options: [],
     },
-    execute: async interaction => {
-        const session = interaction.client.session;
-
+    execute: async (client, interaction) => {
+        const session = client.session;
+        
         const { from, to } = getFetchDate(session);
         const timetable = await session.timetable(from, to);
         const alltimetable = await session.timetable(session.params.firstDay, session.params.lastDay);

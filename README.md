@@ -1,21 +1,25 @@
 # Pronote Discord Bot
 
-Un bot Discord très simple qui envoie des notifications  dans un salon sur Discord lorsqu'un devoir ou une note est ajouté sur Pronote, ou lorsqu'un enseignant est absent ! 📚  
+Un bot Discord très simple qui envoie des notifications dans un salon sur Discord lorsqu'un devoir ou une note est ajouté sur Pronote, ou lorsqu'un enseignant est absent ! 📚  
 
 Si vous êtes plus à l'aise avec Python vous pouvez également utiliser le bot de **[busybox11](https://github.com/busybox11/probote)**, qui sera surement compatible avec la dernière version de Pronote bientôt ! 💫
 
 ![screen-exemple](./screen-exemple.png)
 
+## Information
+
+Le bot utilise une API de Pronote non officielle. Index Eduction, l'entreprise possédant Pronote n'a pas donné son accord pour l'utilisation de cette API.
+Vous pouvez donc risquer des poursuites judiciaires si vous utilisez ce bot. Je ne suis pas responsable de vos actes.
 
 ## Fonctionnalités
 
-Ce bot *incroyable* peut vous permettre de réaliser plusieurs actions et d'avoirs des informations sur:
+Ce bot *incroyable* peut vous permettre de réaliser plusieurs actions et d'avoirs des informations sur :
 
 ### Notifications
 - Vos nouvelles notes
     * Indique le niveau de la note
         + La meilleure note de la classe
-        + Une note au dessus de la moyenne de la classe
+        + Une note au-dessus de la moyenne de la classe
     * Indique **votre note**
     * Indique la **moyenne** de la casse
     * Indique la note la **plus basse**
@@ -27,8 +31,8 @@ Ce bot *incroyable* peut vous permettre de réaliser plusieurs actions et d'avoi
     * Moyenne générale de la **classe**
     * L'**ancienne** moyenne de l'**élève**
     * L'**ancienne** moyenne de la **classe*
-    * La *modification* qu'il y a eu pour l'**élève**
-    * La *modification* qu'il y a eu pour la **classe**
+    * La *modification* qu'il y a eue pour l'**élève**
+    * La *modification* qu'il y a eue pour la **classe**
 - Pour les devoirs
     * La matière
     * Le devoir
@@ -48,19 +52,25 @@ Ce bot *incroyable* peut vous permettre de réaliser plusieurs actions et d'avoi
     * Applique les coefficients
 
 ### Commandes
+- `/config` pour configurer le bot
+- `/contenu` pour afficher le contenu d'un cours
 - `/cours` pour avoir l'emploie du temps du jour
-- `/recheck` pour effectuer de nouveau une vérification
-- `/ping` pour avoir le ping du bot et quelques informations
-- `/info` pour avoir les informations sur le compte
-- `/history` vous donne la liste des modification d'une moyenne (classe/élève pour une matière ou non)
-- `/graph` vous donne un graphique des modification d'une moyenne (classe/élève pour une matière ou non)
+- `/fichier` pour afficher un fichier
+- `/graph` vous donne un graphique des modifications d'une moyenne (classe/élève pour une matière ou non)
 - `/help` pour avoir la liste des commandes
+- `/history` vous donne la liste des modifications d'une moyenne (classe/élève pour une matière ou non)
+- `/infos` pour avoir les informations sur le compte
+- `/logout` pour se déconnecter du compte
+- `/menu` pour avoir le menu du jour **[⚠ ATTENTION COMMANDE EN DEV](https://github.com/Merlode11/pronote-bot-discord/issues/4 "Aider à développer la commande")** 
+- `/notes` pour avoir les notes d'une matière
+- `/ping` pour avoir le ping du bot et quelques informations
 - `/points-bac` calcule automatiquement le nombre de points obtenu pour le bac
+- `/recheck` pour forcer une vérification sur le moment
 
 ## Installation
 
 ### Node.js
-Node.js est requis pour le bon fonctionnement du bot. Il faut donc aller le [télécharger](https://nodejs.org/en/download/current/) sur son site à la **dernière** version, c'est à dire la `16.x.X`
+Node.js est requis pour le bon fonctionnement du bot. Il faut donc aller le [télécharger](https://nodejs.org/en/download/current/) sur son site à la **dernière** version, c'est-à-dire la `16.x.X`
 
 
 ### Windows
@@ -83,7 +93,7 @@ Node.js est requis pour le bon fonctionnement du bot. Il faut donc aller le [té
 Indiquez ici votre URL sur lequel vous accédez à pronote, sans le `.eleve.html` et sa suite. Il faudra s'arrêter à `/pronote/`
 > Exemple: `https://0050006e.index-education.net/pronote/`
 ##### `PRONOTE_CAS`
-**Uniquement dans le cas où vous ne pouvez PAS vous connecter directement par Pronote, mais devez passer par une interface régionale spéciale**
+**Uniquement dans le cas où vous ne pouvez PAS vous connecter directement par Pronote, mais devez passer par une interface régionale spéciale.**
 
 **Si vous pouvez vous connecter directement sur l'interface de Pronote, l'API devrait fonctionner PEU IMPORTE VOTRE ACADÉMIE**
 
@@ -138,7 +148,7 @@ Sinon, l'API propose de se connecter à Pronote avec des comptes des académies 
 ##### `PRONOTE_USERNAME` et `PRONOTE_PASSWORD`
 Indiquez ici votre identifiant (`USERNAME`) et votre mot de passe (`PASSWORD`) pour que le bot puisse se connecter à pronote via votre compte
 
-⚠ Vous identifiants doivent restés **PRIVÉES** et **personne** ne doit y avoir **accès**. Faite attention à ne donner **aucun** de vos identifiants, ne pas donner **directement** le code. Vous pourriez par oubli donner vos **identifants**. Faites bien attention de donner le code uniquement via ce repository
+⚠ Vous identifiants doivent rester **PRIVÉES** et **personne** ne doit y avoir **accès**. Faite attention à ne donner **aucun** de vos identifiants, ne pas donner **directement** le code. Vous pourriez par oubli donner vos **identifiants**. Faites bien attention de donner le code uniquement via ce repository
 
 ##### `TOKEN`
 Indiquez ici le token de votre bot pour qu'il puisse se connecter à Discord. Allez dans le [portail développeur](https://discord.com/developers/applications/) et récupérez ici le token de votre bot
@@ -146,15 +156,15 @@ Indiquez ici le token de votre bot pour qu'il puisse se connecter à Discord. Al
 [![Miniature de la création du bot](http://img.youtube.com/vi/Y8RcqgmYVU8/0.jpg)](http://www.youtube.com/watch?v=Y8RcqgmYVU8 "Miniature de la création du bot")
 
 ##### `CHANNEL`
-Complétez toutes les variables finnissant par `CHANNEL` par les identifiants des salons où seront envoyés les notifications:
+Complétez toutes les variables finissant par `CHANNEL` par les identifiants des salons où seront envoyées les notifications :
 * `HOMEWORKS_CHANNEL_ID` Le salon pour les nouveaux devoirs à la maison
 * `MARKS_CHANNEL_ID` Le salon pour les nouvelles notes
-* `AWAY_CHANNEL_ID` Le salon où seront envoyés les cours annulés
+* `AWAY_CHANNEL_ID` Le salon où seront envoyées les cours annulés
 * `INFOS_CHANNEL_ID` Le salon pour les nouvelles informations (Communication & sondages)
 
 
 ##### `AUTO_UPDATE`
-Vous devez indiquer ici si vous voulez que le bot se mette à jour automatiquement ou non. Si vous voulez que le bot se mette à jour automatiquement, mettez `true` sinon mettez `false`.
+Vous devez indiquer ici si vous voulez que le bot se mette à jour automatiquement ou non. Si vous souhaitez que le bot se mette à jour automatiquement, mettez `true` sinon mettez `false`.
 Une confirmation sera demandée si jamais le bot détecte une version plus récente de celle qu'il possède
 
 ## Crédit
@@ -164,7 +174,7 @@ Le bot est à l'origine créé par [@Androz2091](https://github.com/Androz2091/p
 
 ## Retours
 ### Bugs
-En cas de bug ou de problème d'installation vous pouvez ouvrir une [**`Issue`**](https://github.com/Merlode11/pronote-bot-discord/issues/new?assignees=Merlode11&labels=bug%2C+help+wanted&template=signaler-un-bug.md&title=%5BBUG%5D) ou alors contactez moi sur Discord: `Merlode#8128`
+En cas de bug ou de problème d'installation vous pouvez ouvrir une [**`Issue`**](https://github.com/Merlode11/pronote-bot-discord/issues/new?assignees=Merlode11&labels=bug%2C+help+wanted&template=signaler-un-bug.md&title=%5BBUG%5D) ou alors contactez-moi sur Discord: `Merlode#8128`
 ### Suggestions
 Si vous avez la moindre suggestion, proposez là dans les [**`Issue`**](https://github.com/Merlode11/pronote-bot-discord/issues/new?assignees=Merlode11&labels=enhancement&template=proposer-une-fonctionnalit-.md&title=%5BSUGGESTION%5D), elles sont là pour ça
 
