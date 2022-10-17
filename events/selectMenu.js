@@ -293,8 +293,6 @@ module.exports = async (client, interaction) => {
         });
     } else if (interaction.customId.startsWith("select_note")) {
         const type = interaction.customId.split("-")[1];
-        console.log(interaction.customId);
-        console.log(type);
         let data = [];
         if (type === "recent") {
             client.cache.marks.subjects.forEach(s => {
@@ -304,6 +302,7 @@ module.exports = async (client, interaction) => {
                 }));
             });
             data = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 25);
+            data = data.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
         } else {
             data = client.cache.marks.subjects.find(s => s.name === type);
         }

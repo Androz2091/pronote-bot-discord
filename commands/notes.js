@@ -62,9 +62,16 @@ module.exports = {
         } else {
             // Get the 25 last marks
             client.cache.marks.subjects.forEach(s => {
-                if (s.marks.length) data = data.concat(s.marks);
+                if (s.marks.length) {
+                    s.marks.forEach(m => {
+                        m.subject = s.name;
+                    });
+                    data = data.concat(s.marks);
+                }
             });
             data = data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 25);
+            // supprimer les doublons
+            data = data.filter((v, i, a) => a.findIndex(t => t.id === v.id) === i);
         }
         if (!data) return interaction.editReply({
             embeds: [new EmbedBuilder()
@@ -143,6 +150,7 @@ module.exports = {
             attachments.push(graph);
             selectNote.addOptions(data.map(mark => {
                 mark.date = new Date(mark.date);
+                console.log(mark.id);
                 return {
                     label: mark.subject + " - " + (mark.value + "/" + mark.scale),
                     value: mark.id,

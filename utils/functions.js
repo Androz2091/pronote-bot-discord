@@ -185,7 +185,7 @@ module.exports = (client) => {
          * @return {String} The Discord compatible name
          */
         setFileName: (name) => {
-            return client.functions.transliterate(name).replace(/[^a-zA-Z0-9-.\s_]/g, "").replace(/\s/g, "_");
+            return client.functions.transliterate(name).replace(/[^a-zA-Z0-9.\s\-_]/g, "").replace(/\s/g, "_");
         }
     };
 };

@@ -22,7 +22,7 @@ module.exports = async (client) => {
         delete require.cache[require.resolve("../utils/pronoteSynchronization")];
         await require("../utils/pronoteSynchronization")(client).catch((e) => {
             if (e.message === "Session has expired due to inactivity or error") {
-                client.session.logout();
+                client.session?.logout();
                 client.session = null;
             }
             console.log(`${client.functions.parseTime()} | \x1b[31m${e.message}\x1b[0m`);

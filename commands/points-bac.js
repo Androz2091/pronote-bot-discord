@@ -21,7 +21,7 @@ const nameGenerator = (subject) => {
     } else if (subject === "grand_oral") {
         return "Grand oral *(Épreuve)*";
     }
-    return subject;
+    return subject.charAt(0).toUpperCase() + subject.slice(1);
 };
 
 module.exports = {
@@ -139,6 +139,12 @@ module.exports = {
                 notes["1"].subjectAverage["fr_oral"] = data.marks.bac_fr.oral;
                 notes["1"].subjectAverage["fr_ecrit"] = data.marks.bac_fr.ecrit;
             }
+            if (data.classe?.startsWith("T") && data.marks.bac) {
+                notes["T"].subjectAverage["philosophie"] = data.marks.bac.philosophie;
+                notes["T"].subjectAverage["grand_oral"] = data.marks.bac.grand_oral;
+                notes["T"].subjectAverage["specialite1"] = data.marks.bac.specialite1;
+                notes["T"].subjectAverage["specialite2"] = data.marks.bac.specialite2;
+            }
         });
 
         if (interaction.options.getInteger("fr-oral")) {
@@ -204,11 +210,7 @@ module.exports = {
         Object.keys(notes["T"].subjectAverage).forEach(subject => {
             if (![ "opt1", "opt2" ].includes(subject)) {
                 let actSubjects = notes["T"].subjects.filter(s => s.name.match(subjects[subject]?.regex));
-                if (actSubjects.length === 1) {
-                    founds["T"].push(actSubjects[0].name);
-                    notes["T"].subjectAverage[subject] = actSubjects[0].average * subjects[subject]?.coef["T"];
-                    total += notes["T"].subjectAverage[subject];
-                } else if (subject === "philosophie") {
+                if (subject === "philosophie") {
                     notes["T"].subjectAverage[subject] = notes["T"].subjectAverage[subject] * 4;
                     total += notes["T"].subjectAverage[subject];
                 } else if (subject === "grand_oral") {
@@ -217,6 +219,12 @@ module.exports = {
                 } else if (subject.startsWith("specialite")) {
                     notes["T"].subjectAverage[subject] = notes["T"].subjectAverage[subject] * 16;
                     total += notes["T"].subjectAverage[subject];
+                } else if (actSubjects.length === 1) {
+                    if (subjects[subject].controleContinu) {
+                        founds["T"].push(actSubjects[0].name);
+                        notes["T"].subjectAverage[subject] = actSubjects[0].average * subjects[subject]?.coef["T"];
+                        total += notes["T"].subjectAverage[subject];
+                    }
                 } else if (notes["T"].subjects.length > 0) {
                     errors.push("T|" + subject);
                 }

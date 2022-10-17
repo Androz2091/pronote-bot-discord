@@ -37,7 +37,10 @@ module.exports = {
 
         const embed = new EmbedBuilder()
             .setColor("#70C7A4")
-            .setAuthor(interaction.user.username, interaction.user.displayAvatarURL({dynamic: true}))
+            .setAuthor({
+                name: interaction.user.username,
+                iconURL: interaction.user.displayAvatarURL({dynamic: true})
+            })
             .setThumbnail(session.user.avatar)
             .setTitle(name+", "+classe)
             .setDescription("Cours aujourd'hui/Année : "+timetable.length+" | "+alltimetable.length+"\nControles : "+evaluations.length+"\nAbsences/Retards : "+nombreAbsences+"/"+nombreRetards+"\nDevoirs : "+allhomeworks.length+"\nMoyenne : "+moyenne)

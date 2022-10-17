@@ -128,7 +128,12 @@ module.exports = client => {
                 files.forEach(file => {
                     if (file.type === "file") {
                         const name = client.functions.setFileName(file.name);
-                        string += `[${file.name}](${e.attachments.find(a => a.name === name)?.url})\n`;
+                        const attachment = e.attachments.find(a => a.name === name);
+                        if (attachment) string += `[${file.name}](${attachment.url})\n`;
+                        else {
+                            string += `${file.name}\n`;
+                            console.log("Attachment not found.\nTo found name: " + name, "Original name: " + file.name, "\nAttachments: " + m.attachments.map(a => a.name));
+                        }
                     } else {
                         string += `[${file.name ?? file.url}](${file.url})\n`;
                     }
@@ -183,120 +188,72 @@ module.exports = client => {
 
         let content = NodeHtmlMarkdown.translate(infoNotif.htmlContent);
 
-        if (content.length > 4096) {
-            const splitted = client.functions.splitMessage(content, {
-                maxLength: 4096,
-            });
+        const splitted = client.functions.splitMessage(content, {
+            maxLength: 4096,
+        });
 
+        const embed = new EmbedBuilder()
+            .setTitle(infoNotif.title ?? "Sans titre titre")
+            .setDescription(splitted.shift())
+            .setURL(process.env.PRONOTE_URL)
+            .setColor("#70C7A4");
+
+        if (infoNotif.author) embed.setAuthor({
+            name: infoNotif.author,
+            iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
+            url: process.env.PRONOTE_URL
+        });
+        const embeds = [embed];
+        const attachments = [];
+        let files = [];
+        await client.functions.asyncForEach(splitted, async (s, index) => {
             const embed = new EmbedBuilder()
-                .setTitle(infoNotif.title ?? "Sans titre titre")
-                .setDescription(splitted.shift())
-                .setURL(process.env.PRONOTE_URL)
+                .setDescription(s)
                 .setColor("#70C7A4");
-
-            if (infoNotif.author) embed.setAuthor({
-                name: infoNotif.author,
-                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
-                url: process.env.PRONOTE_URL
-            });
-            const embeds = [embed];
-            const attachments = [];
-            let files = [];
-            await client.functions.asyncForEach(splitted, async (s, index) => {
-                const embed = new EmbedBuilder()
-                    .setDescription(s)
-                    .setColor("#70C7A4");
-                if (index === splitted.length - 1) {
-                    embed.setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`});
-                }
-                embeds.push(embed);
-            });
-
-            if (infoNotif.files.length >= 1) {
-                await client.functions.asyncForEach(infoNotif.files, async (file) => {
-                    const properties = await client.functions.getFileProperties(file);
-                    if (properties.type === "file") {
-                        attachments.push(properties.attachment);
-                    }
-                    files.push(properties);
-                });
+            if (index === splitted.length - 1) {
+                embed.setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`});
             }
-            channel.send({embeds, files: attachments}).then(m => {
-                if (files.length) {
-                    let string = "";
-                    files.forEach(file => {
-                        if (file.type === "file") {
-                            const name = client.functions.transliterate(file.name).replace(/[^a-zA-Z0-9.\s_]/g, "").replace(/\s/g, "_");
-                            string += `[${file.name}](${m.attachments.find(a => a.name === name).url})\n`;
-                        } else {
-                            string += `[${file.name}](${file.url})\n`;
-                        }
-                    });
-                    let strings = client.functions.splitMessage(string, {
-                        maxLength: 1024,
-                    });
+            embeds.push(embed);
+        });
 
-                    embeds[embeds.length - 1].addFields(strings.map((s, index) => {
-                        return {
-                            name: index === 0 ? "Pièces jointes" : "\u200b",
-                            value: s,
-                            inline: false
-                        };
-                    }));
-                    m.edit({embeds});
+        if (infoNotif.files.length >= 1) {
+            await client.functions.asyncForEach(infoNotif.files, async (file) => {
+                const properties = await client.functions.getFileProperties(file);
+                if (properties.type === "file") {
+                    attachments.push(properties.attachment);
                 }
-            }).catch(console.error);
-        } else {
-            const embed = new EmbedBuilder()
-                .setTitle(infoNotif.title ?? "Sans titre titre")
-                .setDescription(content)
-                .setFooter({text: `Information du ${moment(infoNotif.date).format("dddd Do MMMM")}`})
-                .setURL(process.env.PRONOTE_URL)
-                .setColor("#70C7A4");
-            if (infoNotif.author) embed.setAuthor({
-                name: infoNotif.author,
-                iconURL: "https://www.index-education.com/contenu/img/commun/logo-pronote-menu.png",
-                url: process.env.PRONOTE_URL
+                files.push(properties);
             });
-
-            const attachments = [];
-            let files = [];
-            if (infoNotif.files.length >= 1) {
-                await client.functions.asyncForEach(infoNotif.files, async (file) => {
-                    const properties = await client.functions.getFileProperties(file);
-                    if (properties.type === "file") {
-                        attachments.push(properties.attachment);
-                    }
-                    files.push(properties);
-                });
-            }
-
-            channel.send({embeds: [embed], attachments}).then(m => {
-                if (files.length) {
-                    let string = "";
-                    files.forEach(file => {
-                        if (file.type === "file") {
-                            const name = client.functions.setFileName(file.name);
-                            const attachment = m.attachments.find(a => a.name === name);
-                            if (attachment) string += `[${file.name}](${attachment.url})\n`;
-                        } else {
-                            string += `[${file.name}](${file.url})\n`;
-                        }
-                    });
-                    let strings = client.functions.splitMessage(string, {
-                        maxLength: 1024,
-                    });
-
-                    embed.addFields(strings.map((s, index) => {
-                        return {
-                            name: index === 0 ? "Pièces jointes" : "\u200b",
-                            value: s,
-                            inline: false
-                        };
-                    }));
-                    m.edit({embeds: [embed]});
-                }
-            }).catch(console.error);
         }
+        channel.send({embeds, files: attachments}).then(m => {
+            if (files.length) {
+                let string = "";
+                files.forEach(file => {
+                    if (file.type === "file") {
+                        const name = client.functions.setFileName(file.name);
+                        const attachment = m.attachments.find(a => a.name === name);
+                        if (attachment) string += `[${file.name}](${attachment.url})\n`;
+                        else {
+                            string += `${file.name}\n`;
+                            console.log("Attachment not found.\nID: "+ infoNotif.id +" To found name: " + name, "Original name: " + file.name, "\nAttachments: " + m.attachments.map(a => a.name));
+                        }
+                    } else {
+                        string += `[${file.name}](${file.url})\n`;
+                    }
+                });
+                let strings = client.functions.splitMessage(string, {
+                    maxLength: 1024,
+                });
+
+                embeds[embeds.length - 1].addFields(strings.map((s, index) => {
+                    return {
+                        name: index === 0 ? "Pièces jointes" : "\u200b",
+                        value: s,
+                        inline: false
+                    };
+                }));
+                m.edit({embeds});
+            }
+        }).catch(console.error);
     };
 };
