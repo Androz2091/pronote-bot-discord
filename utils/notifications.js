@@ -132,7 +132,7 @@ module.exports = client => {
                         if (attachment) string += `[${file.name}](${attachment.url})\n`;
                         else {
                             string += `${file.name}\n`;
-                            console.log("Attachment not found.\nTo found name: " + name, "Original name: " + file.name, "\nAttachments: " + m.attachments.map(a => a.name));
+                            console.log("Attachment not found.\nTo found name: " + name, "Original name: " + file.name, "\nAttachments: " + e.attachments.map(a => a.name));
                         }
                     } else {
                         string += `[${file.name ?? file.url}](${file.url})\n`;
