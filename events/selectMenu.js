@@ -46,11 +46,13 @@ const pronote = require("pronote-api-maintained");
 const {NodeHtmlMarkdown} = require("node-html-markdown");
 const moment = require("moment/moment");
 module.exports = async (client, interaction) => {
-    interaction.deferUpdate();
+    if (["cours_date", "content_select", "menu_files", "select_note"].includes(interaction.customId)) {
+        await interaction.deferUpdate();
 
-    if (!client.session) {
-        const cas = (process.env.PRONOTE_CAS && process.env.PRONOTE_CAS.length > 0 ? process.env.PRONOTE_CAS : "none");
-        client.session = await pronote.login(process.env.PRONOTE_URL, process.env.PRONOTE_USERNAME, process.env.PRONOTE_PASSWORD, cas).catch(console.error);
+        if (!client.session) {
+            const cas = (process.env.PRONOTE_CAS && process.env.PRONOTE_CAS.length > 0 ? process.env.PRONOTE_CAS : "none");
+            client.session = await pronote.login(process.env.PRONOTE_URL, process.env.PRONOTE_USERNAME, process.env.PRONOTE_PASSWORD, cas).catch(console.error);
+        }
     }
 
     if (interaction.customId === "cours_date") {
@@ -342,7 +344,7 @@ module.exports = async (client, interaction) => {
                 } else if (mark.value === mark.min) {
                     better = "**__Tu est le premier des derniers !__**\n";
                     embed.setThumbnail("https://i.imgur.com/5H5ZASz.gif");
-                    embed.author.url = "https://youtu.be/dQw4w9WgXcQ";
+                    embed.data.author.url = "https://youtu.be/dQw4w9WgXcQ";
                 }
                 let studentNote = `**Note de l'élève :** ${mark.value}/${mark.scale}`;
                 if (mark.scale !== 20) studentNote += ` *(${+(mark.value / mark.scale * 20).toFixed(2)}/20)*`;

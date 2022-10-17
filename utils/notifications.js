@@ -45,7 +45,7 @@ module.exports = client => {
             } else if (mark.value === mark.min) {
                 better = "**__Tu est le premier des derniers !__**\n";
                 embed.setThumbnail("https://i.imgur.com/5H5ZASz.gif");
-                embed.author.url = "https://youtu.be/dQw4w9WgXcQ";
+                embed.data.author.url = "https://youtu.be/dQw4w9WgXcQ";
             }
             let studentNote = `**Note de l'élève :** ${mark.value}/${mark.scale}`;
             if (mark.scale !== 20) studentNote += ` *(${+(mark.value / mark.scale * 20).toFixed(2)}/20)*`;
