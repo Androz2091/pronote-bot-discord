@@ -24,7 +24,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             fetch("https://api.github.com/repos/Merlode11/pronote-bot-discord/releases/latest").then(res => res.json()).then(data => {
                 console.log("Current version: " + require("../package.json").version);
-                resolve(cmpVersions(require("../package.json").version, data.tag_name) > 0);
+                resolve(cmpVersions(require("../package.json").version, data.tag_name) !== 0);
             }).catch(err => {
                 console.error(err);
                 reject(err);
